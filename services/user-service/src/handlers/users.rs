@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use common::{AppError, Result, ApiResponse};
+use llm_governance_common::{AppError, Result, ApiResponse};
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateUserRequest {

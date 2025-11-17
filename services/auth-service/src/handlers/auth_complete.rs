@@ -4,7 +4,7 @@ use validator::Validate;
 use sqlx::PgPool;
 use redis::Client as RedisClient;
 use uuid::Uuid;
-use common::{AppError, Result, ApiResponse};
+use llm_governance_common::{AppError, Result, ApiResponse};
 use crate::config::Config;
 use crate::services::auth_service::AuthService;
 use crate::services::jwt_service::JwtService;

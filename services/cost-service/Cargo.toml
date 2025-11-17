@@ -7,9 +7,9 @@ license.workspace = true
 
 [dependencies]
 # Workspace dependencies
-common = { path = "../../libs/common" }
-database = { path = "../../libs/database" }
-models = { path = "../../libs/models" }
+llm-governance-common = { path = "../../libs/common" }
+llm-governance-database = { path = "../../libs/database" }
+llm-governance-models = { path = "../../libs/models" }
 
 # External dependencies
 actix-web.workspace = true

@@ -4,7 +4,7 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use common::{AppError, Result};
+use llm_governance_common::{AppError, Result};
 use chrono::Utc;
 use sha2::{Sha256, Digest};
 

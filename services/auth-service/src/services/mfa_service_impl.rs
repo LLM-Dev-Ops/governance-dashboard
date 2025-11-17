@@ -3,7 +3,7 @@ use uuid::Uuid;
 use totp_rs::{Algorithm, TOTP, Secret};
 use qrcode::QrCode;
 use qrcode::render::svg;
-use common::{AppError, Result};
+use llm_governance_common::{AppError, Result};
 use chrono::Utc;
 
 pub struct MfaService {

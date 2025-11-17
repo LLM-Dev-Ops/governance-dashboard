@@ -1,6 +1,6 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use common::{AppError, Result};
+use llm_governance_common::{AppError, Result};
 use reqwest::Client;
 use std::collections::HashMap;
 

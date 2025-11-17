@@ -2,7 +2,7 @@ use actix_web::{get, post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
-use common::{AppError, Result, ApiResponse};
+use llm_governance_common::{AppError, Result, ApiResponse};
 use chrono::{DateTime, Utc, NaiveDateTime};
 use sha2::{Sha256, Digest};
 
