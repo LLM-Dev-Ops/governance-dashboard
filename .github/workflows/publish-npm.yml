@@ -72,11 +72,11 @@ jobs:
         working-directory: packages/sdk
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          if npm view "@llm-dev-ops/sdk@${PACKAGE_VERSION}" version 2>/dev/null; then
+          if npm view "@llm-dev-ops/llm-governance@${PACKAGE_VERSION}" version 2>/dev/null; then
             echo "Version ${PACKAGE_VERSION} already published, skipping..."
           else
             npm publish --access public
-            echo "Published @llm-dev-ops/sdk@${PACKAGE_VERSION}"
+            echo "Published @llm-dev-ops/llm-governance@${PACKAGE_VERSION}"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_SECRET }}
@@ -93,5 +93,5 @@ jobs:
           fi
           if [ "${{ github.event.inputs.package }}" == "all" ] || [ "${{ github.event.inputs.package }}" == "sdk" ] || [ -n "${{ github.ref }}" ]; then
             SDK_VERSION=$(node -p "require('./packages/sdk/package.json').version")
-            echo "- [@llm-dev-ops/sdk@${SDK_VERSION}](https://www.npmjs.com/package/@llm-dev-ops/sdk)" >> $GITHUB_STEP_SUMMARY
+            echo "- [@llm-dev-ops/llm-governance@${SDK_VERSION}](https://www.npmjs.com/package/@llm-dev-ops/llm-governance)" >> $GITHUB_STEP_SUMMARY
           fi

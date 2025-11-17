@@ -211,10 +211,10 @@ enum AuditAction {
 
 ## Usage with SDK
 
-This package is automatically included when you install `@llm-dev-ops/sdk`:
+This package is automatically included when you install `@llm-dev-ops/llm-governance`:
 
 ```typescript
-import { LLMGovernanceSDK } from '@llm-dev-ops/sdk';
+import { LLMGovernanceSDK } from '@llm-dev-ops/llm-governance';
 import type { User, Organization } from '@llm-dev-ops/types';
 
 const sdk = new LLMGovernanceSDK();

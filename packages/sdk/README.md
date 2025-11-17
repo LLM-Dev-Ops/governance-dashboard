@@ -1,11 +1,11 @@
-# @llm-dev-ops/sdk
+# @llm-dev-ops/llm-governance
 
 TypeScript/JavaScript SDK for the LLM Governance Dashboard API.
 
 ## Installation
 
 ```bash
-npm install @llm-dev-ops/sdk
+npm install @llm-dev-ops/llm-governance
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @llm-dev-ops/sdk
 ### Basic Setup
 
 ```typescript
-import { LLMGovernanceSDK } from '@llm-dev-ops/sdk';
+import { LLMGovernanceSDK } from '@llm-dev-ops/llm-governance';
 
 const sdk = new LLMGovernanceSDK({
   baseUrl: 'https://api.example.com/v1',
@@ -195,7 +195,7 @@ const sdk = new LLMGovernanceSDK({
 ### Error Handling
 
 ```typescript
-import type { ApiError } from '@llm-dev-ops/sdk';
+import type { ApiError } from '@llm-dev-ops/llm-governance';
 
 try {
   const user = await sdk.auth.getCurrentUser();

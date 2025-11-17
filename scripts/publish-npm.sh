@@ -71,15 +71,15 @@ echo ""
 # 1. Publish @llm-dev-ops/types
 publish_package "packages/types" "@llm-dev-ops/types"
 
-# 2. Publish @llm-dev-ops/sdk
-publish_package "packages/sdk" "@llm-dev-ops/sdk"
+# 2. Publish @llm-dev-ops/llm-governance
+publish_package "packages/sdk" "@llm-dev-ops/llm-governance"
 
 echo -e "${GREEN}All packages published successfully!${NC}"
 echo ""
 echo "Packages published:"
 echo "  - @llm-dev-ops/types"
-echo "  - @llm-dev-ops/sdk"
+echo "  - @llm-dev-ops/llm-governance"
 echo ""
 echo "View on npmjs.org:"
 echo "  - https://www.npmjs.com/package/@llm-dev-ops/types"
-echo "  - https://www.npmjs.com/package/@llm-dev-ops/sdk"
+echo "  - https://www.npmjs.com/package/@llm-dev-ops/llm-governance"

@@ -14,7 +14,7 @@ export * from './organizations';
  *
  * @example
  * ```typescript
- * import { LLMGovernanceSDK } from '@llm-dev-ops/sdk';
+ * import { LLMGovernanceSDK } from '@llm-dev-ops/llm-governance';
  *
  * const sdk = new LLMGovernanceSDK({
  *   baseUrl: 'https://api.example.com/v1',
