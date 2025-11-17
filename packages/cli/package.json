@@ -1,0 +1,59 @@
+{
+  "name": "@llm-dev-ops/llm-governance-cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for LLM Governance Dashboard",
+  "main": "dist/index.js",
+  "bin": {
+    "llm-gov": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts --clean",
+    "dev": "tsup src/index.ts --format cjs --watch",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "llm",
+    "governance",
+    "cli",
+    "command-line",
+    "devops"
+  ],
+  "author": "LLM Dev Ops Team",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globalbusinessadvisors/llm-governance-dashboard.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/globalbusinessadvisors/llm-governance-dashboard/tree/main/packages/cli",
+  "bugs": {
+    "url": "https://github.com/globalbusinessadvisors/llm-governance-dashboard/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@llm-dev-ops/llm-governance-sdk": "^1.0.1",
+    "@llm-dev-ops/llm-governance-types": "^1.0.0",
+    "chalk": "^4.1.2",
+    "commander": "^12.0.0",
+    "conf": "^10.2.0",
+    "inquirer": "^8.2.6",
+    "cli-table3": "^0.6.3",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^8.2.10",
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
