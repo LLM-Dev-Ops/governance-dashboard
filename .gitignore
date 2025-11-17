@@ -55,6 +55,8 @@ build/
 coverage/
 *.profraw
 *.profdata
+playwright-report/
+test-results/
 
 # Documentation build
 book/

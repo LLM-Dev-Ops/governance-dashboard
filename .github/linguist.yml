@@ -1,0 +1,61 @@
+# GitHub Linguist Configuration
+# Additional language detection configuration
+
+# Explicitly override language detection
+overrides:
+  # Svelte files should be detected as Svelte, not HTML
+  - pattern: '**/*.svelte'
+    language: Svelte
+
+  # TypeScript files
+  - pattern: '**/*.ts'
+    language: TypeScript
+
+  - pattern: '**/*.tsx'
+    language: TypeScript
+
+  # Rust files
+  - pattern: '**/*.rs'
+    language: Rust
+
+  # SQL files
+  - pattern: '**/*.sql'
+    language: SQL
+
+# Mark certain paths as vendored (excluded from stats)
+vendored:
+  - 'node_modules/**'
+  - '**/node_modules/**'
+  - 'dist/**'
+  - '**/dist/**'
+  - 'build/**'
+  - '**/build/**'
+  - 'coverage/**'
+  - '**/coverage/**'
+  - '.svelte-kit/**'
+  - '**/.svelte-kit/**'
+  - 'target/**'
+  - '**/target/**'
+  - 'playwright-report/**'
+  - '**/playwright-report/**'
+  - 'test-results/**'
+  - '**/test-results/**'
+
+# Mark certain paths as generated (excluded from stats)
+generated:
+  - '*.lock'
+  - 'package-lock.json'
+  - 'Cargo.lock'
+  - '*.tsbuildinfo'
+  - '.svelte-kit/**'
+  - 'playwright-report/**'
+  - 'coverage/**'
+  - 'dist/**'
+  - 'build/**'
+  - 'target/**'
+
+# Mark documentation
+documentation:
+  - '**/*.md'
+  - '**/*.mdx'
+  - 'docs/**'

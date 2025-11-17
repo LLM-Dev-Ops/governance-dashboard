@@ -1,8 +1,12 @@
 # Git Attributes for Language Statistics
 # This file tells GitHub how to classify files for language statistics
 
-# Svelte files should be counted as TypeScript, not HTML
-*.svelte linguist-language=TypeScript
+# Force Svelte detection (not HTML)
+*.svelte linguist-language=Svelte
+
+# Only app.html should be counted as HTML, mark all other HTML as vendored
+*.html linguist-vendored
+frontend/src/app.html linguist-vendored=false
 
 # Exclude generated files and dependencies from statistics
 **/node_modules/** linguist-vendored
@@ -13,6 +17,7 @@
 **/target/** linguist-generated
 **/.next/** linguist-generated
 **/.nuxt/** linguist-generated
+**/playwright-report/** linguist-generated
 
 # Documentation files
 *.md linguist-documentation
