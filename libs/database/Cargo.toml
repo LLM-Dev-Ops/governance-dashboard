@@ -1,9 +1,16 @@
 [package]
-name = "database"
+name = "llm-governance-database"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+description = "Database connection pooling and utilities for LLM Governance Dashboard with TimescaleDB support"
+repository = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+documentation = "https://docs.rs/llm-governance-database"
+homepage = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+keywords = ["database", "postgres", "timescaledb", "sqlx"]
+categories = ["database"]
+readme = "README.md"
 
 [dependencies]
 # External dependencies

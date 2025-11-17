@@ -1,9 +1,16 @@
 [package]
-name = "models"
+name = "llm-governance-models"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+description = "Shared data models and types for LLM Governance Dashboard multi-tenant platform"
+repository = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+documentation = "https://docs.rs/llm-governance-models"
+homepage = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+keywords = ["models", "llm", "governance", "types"]
+categories = ["data-structures"]
+readme = "README.md"
 
 [dependencies]
 # External dependencies

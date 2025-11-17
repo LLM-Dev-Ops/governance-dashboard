@@ -1,9 +1,16 @@
 [package]
-name = "common"
+name = "llm-governance-common"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+description = "Common utilities, error handling, and response types for LLM Governance Dashboard"
+repository = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+documentation = "https://docs.rs/llm-governance-common"
+homepage = "https://github.com/globalbusinessadvisors/llm-governance-dashboard"
+keywords = ["llm", "governance", "utilities", "error-handling"]
+categories = ["web-programming", "development-tools"]
+readme = "README.md"
 
 [dependencies]
 # External dependencies

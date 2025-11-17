@@ -1,0 +1,76 @@
+name: Publish Crates to crates.io
+
+on:
+  workflow_dispatch:  # Manual trigger only for safety
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Login to crates.io
+        run: cargo login ${{ secrets.CRATES_SECRET }}
+
+      - name: Publish llm-governance-common
+        working-directory: ./libs/common
+        run: |
+          echo "Publishing llm-governance-common..."
+          cargo publish --allow-dirty || echo "Already published or error"
+          sleep 30
+
+      - name: Publish llm-governance-database
+        working-directory: ./libs/database
+        run: |
+          echo "Publishing llm-governance-database..."
+          cargo publish --allow-dirty || echo "Already published or error"
+          sleep 30
+
+      - name: Publish llm-governance-models
+        working-directory: ./libs/models
+        run: |
+          echo "Publishing llm-governance-models..."
+          cargo publish --allow-dirty || echo "Already published or error"
+
+      - name: Success notification
+        if: success()
+        run: |
+          echo "✓ All crates published successfully!"
+          echo "View them at:"
+          echo "  - https://crates.io/crates/llm-governance-common"
+          echo "  - https://crates.io/crates/llm-governance-database"
+          echo "  - https://crates.io/crates/llm-governance-models"

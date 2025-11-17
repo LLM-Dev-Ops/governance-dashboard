@@ -12,11 +12,13 @@ members = [
     "services/api-gateway",
     "services/integration-service",
 
-    # Shared libraries
+    # Shared libraries (published to crates.io)
     "libs/common",
     "libs/database",
     "libs/models",
 ]
+
+# Note: Services are not published to crates.io as they are application binaries
 
 [workspace.package]
 version = "1.0.0"
