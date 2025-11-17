@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-governance
+  labels:
+    name: llm-governance
+    environment: production
+    app: llm-governance-dashboard

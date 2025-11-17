@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-governance-config
+  namespace: llm-governance
+  labels:
+    app: llm-governance-dashboard
+data:
+  # Logging Configuration
+  RUST_LOG: "info"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # Database Configuration
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "llm_governance"
+  DATABASE_MAX_CONNECTIONS: "50"
+  DATABASE_MIN_CONNECTIONS: "5"
+  DATABASE_ACQUIRE_TIMEOUT_SECONDS: "30"
+  DATABASE_IDLE_TIMEOUT_SECONDS: "600"
+
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+  # Service Ports
+  AUTH_PORT: "8081"
+  USER_SERVICE_PORT: "8082"
+  POLICY_SERVICE_PORT: "8083"
+  AUDIT_SERVICE_PORT: "8084"
+  METRICS_SERVICE_PORT: "8085"
+  COST_SERVICE_PORT: "8086"
+  API_GATEWAY_PORT: "8080"
+  INTEGRATION_SERVICE_PORT: "8087"
+
+  # Service URLs (Internal)
+  API_GATEWAY_AUTH_SERVICE_URL: "http://auth-service:8081"
+  API_GATEWAY_USER_SERVICE_URL: "http://user-service:8082"
+  API_GATEWAY_POLICY_SERVICE_URL: "http://policy-service:8083"
+  API_GATEWAY_AUDIT_SERVICE_URL: "http://audit-service:8084"
+  API_GATEWAY_METRICS_SERVICE_URL: "http://metrics-service:8085"
+  API_GATEWAY_COST_SERVICE_URL: "http://cost-service:8086"
+  API_GATEWAY_INTEGRATION_SERVICE_URL: "http://integration-service:8087"
+
+  # Rate Limiting
+  API_GATEWAY_RATE_LIMIT_REQUESTS: "100"
+  API_GATEWAY_RATE_LIMIT_WINDOW_SECONDS: "60"
+
+  # TimescaleDB
+  METRICS_TIMESCALEDB_ENABLED: "true"
+
+  # MFA
+  AUTH_MFA_ISSUER: "LLM-Governance"
+
+  # JWT Configuration
+  AUTH_JWT_EXPIRATION: "3600"
+  AUTH_REFRESH_TOKEN_EXPIRATION: "2592000"
+
+  # Security
+  BCRYPT_COST: "12"
+  ARGON2_MEMORY_COST: "65536"
+  ARGON2_TIME_COST: "2"
+  ARGON2_PARALLELISM: "4"
+
+  # CORS
+  CORS_ALLOWED_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+  CORS_ALLOWED_HEADERS: "Content-Type,Authorization"
+  CORS_MAX_AGE: "3600"
+
+  # Application
+  APP_NAME: "LLM Governance Dashboard"
+  APP_VERSION: "0.1.0"
+  APP_ENV: "production"

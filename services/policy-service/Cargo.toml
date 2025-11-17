@@ -1,0 +1,45 @@
+[package]
+name = "policy-service"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies
+common = { path = "../../libs/common" }
+database = { path = "../../libs/database" }
+models = { path = "../../libs/models" }
+
+# External dependencies
+actix-web.workspace = true
+actix-rt.workspace = true
+actix-cors.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-actix-web.workspace = true
+dotenv.workspace = true
+config.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+validator.workspace = true
+envy.workspace = true
+
+# Service-specific dependencies
+regex = "1.10"
+serde_yaml = "0.9"
+jsonschema = "0.18"
+
+[dev-dependencies]
+mockall.workspace = true
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3", features = ["postgres", "redis"] }
+fake = "2.9"
+quickcheck = "1.0"

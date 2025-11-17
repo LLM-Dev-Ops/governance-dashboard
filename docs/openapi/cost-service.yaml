@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: Cost Service API
+  description: Cost tracking, budgets, and forecasting
+  version: 1.0.0
+
+servers:
+  - url: https://api.llm-governance.example.com/api/v1
+
+tags:
+  - name: Costs
+  - name: Budgets
+  - name: Reports
+
+paths:
+  /costs/calculate:
+    post:
+      tags: [Costs]
+      summary: Calculate cost
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, model, tokens_input, tokens_output]
+              properties:
+                provider: {type: string}
+                model: {type: string}
+                tokens_input: {type: integer}
+                tokens_output: {type: integer}
+      responses:
+        '200':
+          description: Cost calculated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      cost: {type: number}
+                      breakdown:
+                        type: object
+                        properties:
+                          input_cost: {type: number}
+                          output_cost: {type: number}
+
+  /costs/team/{team_id}:
+    get:
+      tags: [Costs]
+      summary: Get team costs
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: start_date
+          in: query
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          schema: {type: string, format: date}
+      responses:
+        '200':
+          description: Team costs
+
+  /costs/user/{user_id}:
+    get:
+      tags: [Costs]
+      summary: Get user costs
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: start_date
+          in: query
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          schema: {type: string, format: date}
+      responses:
+        '200':
+          description: User costs
+
+  /costs/budgets:
+    get:
+      tags: [Budgets]
+      summary: List budgets
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Budgets list
+    post:
+      tags: [Budgets]
+      summary: Create budget
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateBudgetRequest'}
+      responses:
+        '201':
+          description: Budget created
+
+  /costs/budgets/{id}:
+    get:
+      tags: [Budgets]
+      summary: Get budget
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Budget details
+    put:
+      tags: [Budgets]
+      summary: Update budget
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdateBudgetRequest'}
+      responses:
+        '200':
+          description: Budget updated
+    delete:
+      tags: [Budgets]
+      summary: Delete budget
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Budget deleted
+
+  /costs/forecast:
+    get:
+      tags: [Reports]
+      summary: Forecast costs
+      description: Forecast future costs based on historical data
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: team_id
+          in: query
+          schema: {type: string, format: uuid}
+        - name: user_id
+          in: query
+          schema: {type: string, format: uuid}
+        - name: days
+          in: query
+          schema: {type: integer, default: 30}
+      responses:
+        '200':
+          description: Cost forecast
+
+  /costs/reports/chargeback:
+    get:
+      tags: [Reports]
+      summary: Chargeback report
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          required: true
+          schema: {type: string, format: date}
+      responses:
+        '200':
+          description: Chargeback report
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    CreateBudgetRequest:
+      type: object
+      required: [amount, period, scope]
+      properties:
+        amount: {type: number}
+        period: {type: string, enum: [daily, weekly, monthly]}
+        scope: {type: string, enum: [team, user, global]}
+        team_id: {type: string, format: uuid}
+        user_id: {type: string, format: uuid}
+
+    UpdateBudgetRequest:
+      type: object
+      properties:
+        amount: {type: number}
+        status: {type: string, enum: [active, inactive]}

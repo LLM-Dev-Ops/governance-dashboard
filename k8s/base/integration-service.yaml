@@ -1,0 +1,131 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-service
+  namespace: llm-governance
+  labels:
+    app: integration-service
+    component: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: integration-service
+  template:
+    metadata:
+      labels:
+        app: integration-service
+        component: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8087"
+    spec:
+      serviceAccountName: llm-governance-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: integration-service
+        image: YOUR_REGISTRY/llm-integration-service:latest
+        ports:
+        - containerPort: 8087
+        env:
+        - name: INTEGRATION_SERVICE_HOST
+          value: "0.0.0.0"
+        - name: INTEGRATION_SERVICE_DATABASE_URL
+          value: "postgresql://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+        - name: INTEGRATION_SERVICE_REDIS_URL
+          value: "redis://:$(REDIS_PASSWORD)@$(REDIS_HOST):$(REDIS_PORT)"
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: DATABASE_USER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: DATABASE_PASSWORD
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: REDIS_PASSWORD
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: OPENAI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: ANTHROPIC_API_KEY
+        - name: AZURE_OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: AZURE_OPENAI_API_KEY
+        - name: GOOGLE_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: GOOGLE_AI_API_KEY
+        - name: COHERE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: COHERE_API_KEY
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-governance-secrets
+              key: HUGGINGFACE_API_KEY
+        envFrom:
+        - configMapRef:
+            name: llm-governance-config
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8087
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8087
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: integration-service
+  namespace: llm-governance
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8087
+    targetPort: 8087
+  selector:
+    app: integration-service

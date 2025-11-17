@@ -1,0 +1,395 @@
+version: '3.9'
+
+# ========================================
+# LLM Governance Dashboard - Docker Compose
+# ========================================
+
+services:
+  # ----------------------------------------
+  # Database Services
+  # ----------------------------------------
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: llm-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-password}
+      POSTGRES_DB: ${DATABASE_NAME:-llm_governance}
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - llm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: llm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - llm-network
+
+  # ----------------------------------------
+  # Backend Microservices
+  # ----------------------------------------
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: llm-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      API_GATEWAY_HOST: 0.0.0.0
+      API_GATEWAY_PORT: 8080
+      API_GATEWAY_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      API_GATEWAY_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      API_GATEWAY_AUTH_SERVICE_URL: http://auth-service:8081
+      API_GATEWAY_USER_SERVICE_URL: http://user-service:8082
+      API_GATEWAY_POLICY_SERVICE_URL: http://policy-service:8083
+      API_GATEWAY_AUDIT_SERVICE_URL: http://audit-service:8084
+      API_GATEWAY_METRICS_SERVICE_URL: http://metrics-service:8085
+      API_GATEWAY_COST_SERVICE_URL: http://cost-service:8086
+      API_GATEWAY_INTEGRATION_SERVICE_URL: http://integration-service:8087
+      API_GATEWAY_RATE_LIMIT_REQUESTS: ${API_GATEWAY_RATE_LIMIT_REQUESTS:-100}
+      API_GATEWAY_RATE_LIMIT_WINDOW_SECONDS: ${API_GATEWAY_RATE_LIMIT_WINDOW_SECONDS:-60}
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: llm-auth-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      AUTH_HOST: 0.0.0.0
+      AUTH_PORT: 8081
+      AUTH_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      AUTH_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      AUTH_JWT_EXPIRATION: ${AUTH_JWT_EXPIRATION:-3600}
+      AUTH_REFRESH_TOKEN_EXPIRATION: ${AUTH_REFRESH_TOKEN_EXPIRATION:-2592000}
+      AUTH_OAUTH_GOOGLE_CLIENT_ID: ${AUTH_OAUTH_GOOGLE_CLIENT_ID}
+      AUTH_OAUTH_GOOGLE_CLIENT_SECRET: ${AUTH_OAUTH_GOOGLE_CLIENT_SECRET}
+      AUTH_OAUTH_GITHUB_CLIENT_ID: ${AUTH_OAUTH_GITHUB_CLIENT_ID}
+      AUTH_OAUTH_GITHUB_CLIENT_SECRET: ${AUTH_OAUTH_GITHUB_CLIENT_SECRET}
+      AUTH_MFA_ISSUER: ${AUTH_MFA_ISSUER:-LLM-Governance}
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: llm-user-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      USER_SERVICE_HOST: 0.0.0.0
+      USER_SERVICE_PORT: 8082
+      USER_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      USER_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  policy-service:
+    build:
+      context: .
+      dockerfile: services/policy-service/Dockerfile
+    container_name: llm-policy-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      POLICY_SERVICE_HOST: 0.0.0.0
+      POLICY_SERVICE_PORT: 8083
+      POLICY_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      POLICY_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: services/audit-service/Dockerfile
+    container_name: llm-audit-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      AUDIT_SERVICE_HOST: 0.0.0.0
+      AUDIT_SERVICE_PORT: 8084
+      AUDIT_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      AUDIT_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  metrics-service:
+    build:
+      context: .
+      dockerfile: services/metrics-service/Dockerfile
+    container_name: llm-metrics-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      METRICS_SERVICE_HOST: 0.0.0.0
+      METRICS_SERVICE_PORT: 8085
+      METRICS_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      METRICS_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      METRICS_TIMESCALEDB_ENABLED: ${METRICS_TIMESCALEDB_ENABLED:-true}
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  cost-service:
+    build:
+      context: .
+      dockerfile: services/cost-service/Dockerfile
+    container_name: llm-cost-service
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      COST_SERVICE_HOST: 0.0.0.0
+      COST_SERVICE_PORT: 8086
+      COST_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      COST_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  integration-service:
+    build:
+      context: .
+      dockerfile: services/integration-service/Dockerfile
+    container_name: llm-integration-service
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      INTEGRATION_SERVICE_HOST: 0.0.0.0
+      INTEGRATION_SERVICE_PORT: 8087
+      INTEGRATION_SERVICE_DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@postgres:5432/${DATABASE_NAME:-llm_governance}
+      INTEGRATION_SERVICE_REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY}
+      COHERE_API_KEY: ${COHERE_API_KEY}
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
+      RUST_LOG: ${RUST_LOG:-info}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8087/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  # ----------------------------------------
+  # Frontend Service
+  # ----------------------------------------
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: llm-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      PUBLIC_API_URL: http://api-gateway:8080
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-network
+
+  # ----------------------------------------
+  # Development Tools (Optional)
+  # ----------------------------------------
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: llm-pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@llmgovernance.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - llm-network
+    profiles:
+      - dev
+
+# ----------------------------------------
+# Networks
+# ----------------------------------------
+
+networks:
+  llm-network:
+    driver: bridge
+    name: llm-governance-network
+
+# ----------------------------------------
+# Volumes
+# ----------------------------------------
+
+volumes:
+  postgres_data:
+    name: llm-postgres-data
+  redis_data:
+    name: llm-redis-data
+  pgadmin_data:
+    name: llm-pgadmin-data

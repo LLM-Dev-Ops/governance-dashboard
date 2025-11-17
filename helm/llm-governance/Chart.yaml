@@ -1,0 +1,20 @@
+apiVersion: v2
+name: llm-governance
+description: A Helm chart for LLM Governance Dashboard microservices
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - llm
+  - governance
+  - monitoring
+  - microservices
+  - rust
+  - svelte
+home: https://github.com/your-org/llm-governance-dashboard
+sources:
+  - https://github.com/your-org/llm-governance-dashboard
+maintainers:
+  - name: LLM Governance Team
+    email: team@example.com
+dependencies: []

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "llm-governance.fullname" . }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "llm-governance.labels" . | nindent 4 }}
+data:
+  RUST_LOG: {{ .Values.config.logLevel | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  LOG_FORMAT: {{ .Values.config.logFormat | quote }}
+  DATABASE_HOST: {{ .Values.config.database.host | quote }}
+  DATABASE_PORT: {{ .Values.config.database.port | quote }}
+  DATABASE_NAME: {{ .Values.config.database.name | quote }}
+  DATABASE_MAX_CONNECTIONS: {{ .Values.config.database.maxConnections | quote }}
+  DATABASE_MIN_CONNECTIONS: {{ .Values.config.database.minConnections | quote }}
+  REDIS_HOST: {{ .Values.config.redis.host | quote }}
+  REDIS_PORT: {{ .Values.config.redis.port | quote }}
+  REDIS_DB: {{ .Values.config.redis.db | quote }}
+  AUTH_PORT: {{ .Values.authService.port | quote }}
+  USER_SERVICE_PORT: {{ .Values.userService.port | quote }}
+  POLICY_SERVICE_PORT: {{ .Values.policyService.port | quote }}
+  AUDIT_SERVICE_PORT: {{ .Values.auditService.port | quote }}
+  METRICS_SERVICE_PORT: {{ .Values.metricsService.port | quote }}
+  COST_SERVICE_PORT: {{ .Values.costService.port | quote }}
+  API_GATEWAY_PORT: {{ .Values.apiGateway.port | quote }}
+  INTEGRATION_SERVICE_PORT: {{ .Values.integrationService.port | quote }}
+  API_GATEWAY_AUTH_SERVICE_URL: "http://{{ .Values.authService.name }}:{{ .Values.authService.port }}"
+  API_GATEWAY_USER_SERVICE_URL: "http://{{ .Values.userService.name }}:{{ .Values.userService.port }}"
+  API_GATEWAY_POLICY_SERVICE_URL: "http://{{ .Values.policyService.name }}:{{ .Values.policyService.port }}"
+  API_GATEWAY_AUDIT_SERVICE_URL: "http://{{ .Values.auditService.name }}:{{ .Values.auditService.port }}"
+  API_GATEWAY_METRICS_SERVICE_URL: "http://{{ .Values.metricsService.name }}:{{ .Values.metricsService.port }}"
+  API_GATEWAY_COST_SERVICE_URL: "http://{{ .Values.costService.name }}:{{ .Values.costService.port }}"
+  API_GATEWAY_INTEGRATION_SERVICE_URL: "http://{{ .Values.integrationService.name }}:{{ .Values.integrationService.port }}"
+  API_GATEWAY_RATE_LIMIT_REQUESTS: {{ .Values.config.rateLimit.requests | quote }}
+  API_GATEWAY_RATE_LIMIT_WINDOW_SECONDS: {{ .Values.config.rateLimit.windowSeconds | quote }}
+  METRICS_TIMESCALEDB_ENABLED: {{ .Values.config.timescaledb.enabled | quote }}
+  AUTH_MFA_ISSUER: {{ .Values.config.mfa.issuer | quote }}
+  AUTH_JWT_EXPIRATION: {{ .Values.config.jwt.expiration | quote }}
+  AUTH_REFRESH_TOKEN_EXPIRATION: {{ .Values.config.jwt.refreshExpiration | quote }}
+  CORS_ALLOWED_METHODS: {{ .Values.config.cors.allowedMethods | quote }}
+  CORS_ALLOWED_HEADERS: {{ .Values.config.cors.allowedHeaders | quote }}
+  CORS_MAX_AGE: {{ .Values.config.cors.maxAge | quote }}
+  APP_NAME: "LLM Governance Dashboard"
+  APP_VERSION: {{ .Chart.AppVersion | quote }}
+  APP_ENV: "production"

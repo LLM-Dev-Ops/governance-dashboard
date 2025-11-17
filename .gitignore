@@ -1,0 +1,76 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+
+# Cargo lock files (keep for binaries, ignore for libraries)
+# Cargo.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Redis dumps
+dump.rdb
+
+# Backup files
+*.bak
+*.tmp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+*.dockerignore.swp
+
+# Build artifacts
+dist/
+build/
+
+# Test coverage
+coverage/
+*.profraw
+*.profdata
+
+# Documentation build
+book/
+
+# SQLx
+.sqlx/
+
+# Temporary files
+tmp/
+temp/
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.crt
+
+# Node modules (if any frontend dev tools are used)
+node_modules/

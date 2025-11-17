@@ -1,0 +1,840 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  description: |
+    Authentication service providing user registration, login, JWT token management,
+    multi-factor authentication (MFA), password management, and OAuth2 integration.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@llm-governance.example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.llm-governance.example.com/api/v1
+    description: Production
+  - url: https://staging-api.llm-governance.example.com/api/v1
+    description: Staging
+  - url: http://localhost:8080/api/v1
+    description: Local Development
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: MFA
+    description: Multi-factor authentication
+  - name: Password
+    description: Password management
+  - name: OAuth
+    description: OAuth2 social authentication
+  - name: Tokens
+    description: Token management
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account with email verification
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              standard:
+                summary: Standard registration
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+                  name: John Doe
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  id: 550e8400-e29b-41d4-a716-446655440000
+                  email: user@example.com
+                  name: John Doe
+                  status: pending
+                  message: User registered successfully. Please verify your email.
+                timestamp: '2025-11-16T12:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              standard:
+                summary: Standard login
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AuthSuccessResponse'
+                  - $ref: '#/components/schemas/MfaRequiredResponse'
+              examples:
+                withoutMfa:
+                  summary: Login without MFA
+                  value:
+                    success: true
+                    data:
+                      access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      token_type: Bearer
+                      expires_in: 3600
+                      user:
+                        id: 550e8400-e29b-41d4-a716-446655440000
+                        email: user@example.com
+                        name: John Doe
+                        status: active
+                        mfa_enabled: false
+                      requires_mfa: false
+                    timestamp: '2025-11-16T12:00:00Z'
+                withMfa:
+                  summary: Login with MFA required
+                  value:
+                    success: true
+                    data:
+                      requires_mfa: true
+                      session_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+                      message: MFA verification required
+                    timestamp: '2025-11-16T12:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/mfa/verify:
+    post:
+      tags:
+        - MFA
+      summary: Verify MFA code
+      description: Verify TOTP code and complete login
+      operationId: verifyMfa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerifyRequest'
+            example:
+              code: '123456'
+              session_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+      responses:
+        '200':
+          description: MFA verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/mfa/setup:
+    post:
+      tags:
+        - MFA
+      summary: Setup MFA
+      description: Initialize MFA setup and get QR code
+      operationId: setupMfa
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: MFA setup initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      secret:
+                        type: string
+                        description: TOTP secret key
+                      qr_code:
+                        type: string
+                        description: Base64 encoded QR code image
+                      backup_codes:
+                        type: array
+                        items:
+                          type: string
+                        description: One-time backup codes
+              example:
+                success: true
+                data:
+                  secret: JBSWY3DPEHPK3PXP
+                  qr_code: data:image/png;base64,iVBORw0KGgoAAAANS...
+                  backup_codes:
+                    - ABCD-1234-EFGH-5678
+                    - IJKL-9012-MNOP-3456
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/mfa/enable:
+    post:
+      tags:
+        - MFA
+      summary: Enable MFA
+      description: Enable MFA after verifying setup code
+      operationId: enableMfa
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: TOTP verification code
+              example:
+                code: '123456'
+      responses:
+        '200':
+          description: MFA enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/mfa/disable:
+    post:
+      tags:
+        - MFA
+      summary: Disable MFA
+      description: Disable MFA for user account
+      operationId: disableMfa
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  description: User password for confirmation
+              example:
+                password: SecurePass123!
+      responses:
+        '200':
+          description: MFA disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Tokens
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+            example:
+              refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Invalidate current session and tokens
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  message: Logout successful
+                timestamp: '2025-11-16T12:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/password-reset/initiate:
+    post:
+      tags:
+        - Password
+      summary: Initiate password reset
+      description: Send password reset email
+      operationId: initiatePasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+            example:
+              email: user@example.com
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  message: Password reset email sent. Please check your inbox.
+                timestamp: '2025-11-16T12:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/password-reset/confirm:
+    post:
+      tags:
+        - Password
+      summary: Confirm password reset
+      description: Reset password using token from email
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+            example:
+              token: abc123def456
+              new_password: NewSecurePass123!
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/password/change:
+    post:
+      tags:
+        - Password
+      summary: Change password
+      description: Change password for authenticated user
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            example:
+              current_password: SecurePass123!
+              new_password: NewSecurePass123!
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/verify-email/{token}:
+    get:
+      tags:
+        - Authentication
+      summary: Verify email address
+      description: Verify user email using token from email
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Email verification token
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/oauth/google:
+    get:
+      tags:
+        - OAuth
+      summary: Google OAuth login
+      description: Initiate Google OAuth2 flow
+      operationId: googleOAuth
+      responses:
+        '302':
+          description: Redirect to Google OAuth
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/oauth/google/callback:
+    get:
+      tags:
+        - OAuth
+      summary: Google OAuth callback
+      description: Handle Google OAuth2 callback
+      operationId: googleOAuthCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from Google
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: State parameter for CSRF protection
+      responses:
+        '200':
+          description: OAuth successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/oauth/github:
+    get:
+      tags:
+        - OAuth
+      summary: GitHub OAuth login
+      description: Initiate GitHub OAuth2 flow
+      operationId: githubOAuth
+      responses:
+        '302':
+          description: Redirect to GitHub OAuth
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /auth/oauth/github/callback:
+    get:
+      tags:
+        - OAuth
+      summary: GitHub OAuth callback
+      description: Handle GitHub OAuth2 callback
+      operationId: githubOAuthCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from GitHub
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: State parameter for CSRF protection
+      responses:
+        '200':
+          description: OAuth successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: User password (min 8 characters)
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: User full name
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          description: User password
+
+    MfaVerifyRequest:
+      type: object
+      required:
+        - code
+        - session_id
+      properties:
+        code:
+          type: string
+          pattern: '^[0-9]{6}$'
+          description: 6-digit TOTP code
+        session_id:
+          type: string
+          format: uuid
+          description: MFA session identifier
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: JWT refresh token
+
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+
+    PasswordResetConfirm:
+      type: object
+      required:
+        - token
+        - new_password
+      properties:
+        token:
+          type: string
+          description: Password reset token from email
+        new_password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: New password
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - current_password
+        - new_password
+      properties:
+        current_password:
+          type: string
+          format: password
+          description: Current password
+        new_password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: New password
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: User email
+        name:
+          type: string
+          description: User name
+        status:
+          type: string
+          enum: [pending, active, inactive, suspended]
+          description: User account status
+        mfa_enabled:
+          type: boolean
+          description: Whether MFA is enabled
+
+    AuthSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+              description: JWT access token
+            refresh_token:
+              type: string
+              description: JWT refresh token
+            token_type:
+              type: string
+              example: Bearer
+            expires_in:
+              type: integer
+              description: Token expiration in seconds
+              example: 3600
+            user:
+              $ref: '#/components/schemas/UserInfo'
+            requires_mfa:
+              type: boolean
+              example: false
+        timestamp:
+          type: string
+          format: date-time
+
+    MfaRequiredResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            requires_mfa:
+              type: boolean
+              example: true
+            session_id:
+              type: string
+              format: uuid
+            message:
+              type: string
+              example: MFA verification required
+        timestamp:
+          type: string
+          format: date-time
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Error message
+            details:
+              type: object
+              additionalProperties: true
+              description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Invalid request parameters
+              details:
+                field: email
+                constraint: required
+            timestamp: '2025-11-16T12:00:00Z'
+
+    Unauthorized:
+      description: Unauthorized - authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: AUTHENTICATION_FAILED
+              message: Invalid credentials
+            timestamp: '2025-11-16T12:00:00Z'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: Resource not found
+            timestamp: '2025-11-16T12:00:00Z'
+
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: ALREADY_EXISTS
+              message: User with this email already exists
+            timestamp: '2025-11-16T12:00:00Z'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INTERNAL_ERROR
+              message: An unexpected error occurred
+            timestamp: '2025-11-16T12:00:00Z'

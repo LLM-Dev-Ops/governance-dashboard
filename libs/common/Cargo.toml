@@ -1,0 +1,24 @@
+[package]
+name = "common"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# External dependencies
+actix-web.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+validator.workspace = true
+jsonwebtoken.workspace = true
+redis.workspace = true
+tokio.workspace = true
+
+# Additional
+once_cell = "1.20"

@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Metrics Service API
+  description: Time-series metrics collection and analytics
+  version: 1.0.0
+
+servers:
+  - url: https://api.llm-governance.example.com/api/v1
+
+tags:
+  - name: Metrics
+  - name: Analytics
+
+paths:
+  /metrics/ingest:
+    post:
+      tags: [Metrics]
+      summary: Ingest single metric
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MetricData'}
+            example:
+              provider: openai
+              model: gpt-4
+              tokens_input: 150
+              tokens_output: 75
+              latency_ms: 1250
+              cost: 0.0123
+              status: success
+              user_id: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '201':
+          description: Metric ingested
+
+  /metrics/ingest/batch:
+    post:
+      tags: [Metrics]
+      summary: Ingest batch metrics
+      description: Ingest up to 1000 metrics at once
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metrics:
+                  type: array
+                  maxItems: 1000
+                  items: {$ref: '#/components/schemas/MetricData'}
+      responses:
+        '201':
+          description: Batch ingested
+
+  /metrics/query:
+    get:
+      tags: [Metrics]
+      summary: Query metrics
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: provider
+          in: query
+          schema: {type: string}
+        - name: model
+          in: query
+          schema: {type: string}
+        - name: user_id
+          in: query
+          schema: {type: string, format: uuid}
+        - name: team_id
+          in: query
+          schema: {type: string, format: uuid}
+        - name: start_time
+          in: query
+          schema: {type: string, format: date-time}
+        - name: end_time
+          in: query
+          schema: {type: string, format: date-time}
+        - name: limit
+          in: query
+          schema: {type: integer, default: 100}
+      responses:
+        '200':
+          description: Metrics data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      metrics:
+                        type: array
+                        items: {$ref: '#/components/schemas/Metric'}
+
+  /metrics/aggregate/hourly:
+    get:
+      tags: [Analytics]
+      summary: Get hourly aggregates
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: start_time
+          in: query
+          required: true
+          schema: {type: string, format: date-time}
+        - name: end_time
+          in: query
+          required: true
+          schema: {type: string, format: date-time}
+      responses:
+        '200':
+          description: Hourly aggregates
+
+  /metrics/aggregate/daily:
+    get:
+      tags: [Analytics]
+      summary: Get daily aggregates
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema: {type: string, format: date}
+        - name: end_date
+          in: query
+          required: true
+          schema: {type: string, format: date}
+      responses:
+        '200':
+          description: Daily aggregates
+
+  /metrics/stats/usage:
+    get:
+      tags: [Analytics]
+      summary: Get usage statistics
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: period
+          in: query
+          schema: {type: string, enum: [day, week, month], default: day}
+      responses:
+        '200':
+          description: Usage stats
+
+  /metrics/stats/by-provider:
+    get:
+      tags: [Analytics]
+      summary: Get stats by provider
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Provider stats
+
+  /metrics/stats/by-model:
+    get:
+      tags: [Analytics]
+      summary: Get stats by model
+      security: [{bearerAuth: []}]
+      responses:
+        '200':
+          description: Model stats
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    MetricData:
+      type: object
+      required: [provider, model, tokens_input, tokens_output]
+      properties:
+        provider: {type: string}
+        model: {type: string}
+        tokens_input: {type: integer}
+        tokens_output: {type: integer}
+        latency_ms: {type: integer}
+        cost: {type: number, format: double}
+        status: {type: string, enum: [success, error]}
+        user_id: {type: string, format: uuid}
+        team_id: {type: string, format: uuid}
+
+    Metric:
+      allOf:
+        - $ref: '#/components/schemas/MetricData'
+        - type: object
+          properties:
+            id: {type: string, format: uuid}
+            timestamp: {type: string, format: date-time}

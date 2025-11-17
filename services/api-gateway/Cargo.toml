@@ -1,0 +1,43 @@
+[package]
+name = "api-gateway"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies
+common = { path = "../../libs/common" }
+database = { path = "../../libs/database" }
+models = { path = "../../libs/models" }
+
+# External dependencies
+actix-web.workspace = true
+actix-rt.workspace = true
+actix-cors.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+jsonwebtoken.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-actix-web.workspace = true
+dotenv.workspace = true
+config.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+validator.workspace = true
+envy.workspace = true
+reqwest.workspace = true
+governor.workspace = true
+prometheus.workspace = true
+
+# Service-specific dependencies
+actix-web-httpauth = "0.8"
+futures = "0.3"
+sha2 = "0.10"
+base64 = "0.22"

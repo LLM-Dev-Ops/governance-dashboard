@@ -1,0 +1,373 @@
+# Default values for llm-governance.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  domain: llm-governance.example.com
+  apiDomain: api.llm-governance.example.com
+  imageRegistry: docker.io
+  imagePullSecrets: []
+  storageClass: gp3
+
+# Image configuration
+image:
+  registry: YOUR_REGISTRY
+  pullPolicy: Always
+  tag: latest
+
+# Namespace
+namespace: llm-governance
+
+# API Gateway
+apiGateway:
+  enabled: true
+  name: api-gateway
+  replicaCount: 3
+  image:
+    repository: llm-api-gateway
+  port: 8080
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  service:
+    type: LoadBalancer
+    port: 8080
+
+# Auth Service
+authService:
+  enabled: true
+  name: auth-service
+  replicaCount: 3
+  image:
+    repository: llm-auth-service
+  port: 8081
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8081
+
+# User Service
+userService:
+  enabled: true
+  name: user-service
+  replicaCount: 3
+  image:
+    repository: llm-user-service
+  port: 8082
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8082
+
+# Policy Service
+policyService:
+  enabled: true
+  name: policy-service
+  replicaCount: 3
+  image:
+    repository: llm-policy-service
+  port: 8083
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8083
+
+# Audit Service
+auditService:
+  enabled: true
+  name: audit-service
+  replicaCount: 3
+  image:
+    repository: llm-audit-service
+  port: 8084
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8084
+
+# Metrics Service
+metricsService:
+  enabled: true
+  name: metrics-service
+  replicaCount: 3
+  image:
+    repository: llm-metrics-service
+  port: 8085
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8085
+
+# Cost Service
+costService:
+  enabled: true
+  name: cost-service
+  replicaCount: 3
+  image:
+    repository: llm-cost-service
+  port: 8086
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8086
+
+# Integration Service
+integrationService:
+  enabled: true
+  name: integration-service
+  replicaCount: 3
+  image:
+    repository: llm-integration-service
+  port: 8087
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 8087
+
+# Frontend
+frontend:
+  enabled: true
+  name: frontend
+  replicaCount: 3
+  image:
+    repository: llm-frontend
+  port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  service:
+    type: ClusterIP
+    port: 3000
+
+# PostgreSQL
+postgresql:
+  enabled: true
+  name: postgres
+  image:
+    repository: timescale/timescaledb
+    tag: latest-pg16
+  port: 5432
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: gp3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  service:
+    type: ClusterIP
+    port: 5432
+
+# Redis
+redis:
+  enabled: true
+  name: redis
+  image:
+    repository: redis
+    tag: 7-alpine
+  port: 6379
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: gp3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  service:
+    type: ClusterIP
+    port: 6379
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+  tls:
+    enabled: true
+    secretName: llm-governance-tls
+
+# Network Policies
+networkPolicy:
+  enabled: true
+
+# Service Account
+serviceAccount:
+  create: true
+  name: llm-governance-sa
+  annotations: {}
+
+# RBAC
+rbac:
+  create: true
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+# Configuration
+config:
+  logLevel: info
+  logFormat: json
+  database:
+    host: postgres-service
+    port: 5432
+    name: llm_governance
+    maxConnections: 50
+    minConnections: 5
+  redis:
+    host: redis-service
+    port: 6379
+    db: 0
+  jwt:
+    expiration: 3600
+    refreshExpiration: 2592000
+  rateLimit:
+    requests: 100
+    windowSeconds: 60
+  timescaledb:
+    enabled: true
+  mfa:
+    issuer: LLM-Governance
+  cors:
+    allowedMethods: "GET,POST,PUT,DELETE,OPTIONS"
+    allowedHeaders: "Content-Type,Authorization"
+    maxAge: 3600
+
+# Secrets (should be overridden in production)
+secrets:
+  database:
+    user: postgres
+    password: CHANGE_ME_IN_PRODUCTION
+  redis:
+    password: CHANGE_ME_IN_PRODUCTION
+  jwt:
+    secret: CHANGE_ME_IN_PRODUCTION_USE_STRONG_SECRET
+  oauth:
+    google:
+      clientId: YOUR_GOOGLE_CLIENT_ID
+      clientSecret: YOUR_GOOGLE_CLIENT_SECRET
+    github:
+      clientId: YOUR_GITHUB_CLIENT_ID
+      clientSecret: YOUR_GITHUB_CLIENT_SECRET
+  llmProviders:
+    openai: YOUR_OPENAI_API_KEY
+    anthropic: YOUR_ANTHROPIC_API_KEY
+    azureOpenai:
+      key: YOUR_AZURE_OPENAI_API_KEY
+      endpoint: https://your-resource.openai.azure.com/
+    googleAI: YOUR_GOOGLE_AI_API_KEY
+    cohere: YOUR_COHERE_API_KEY
+    huggingface: YOUR_HUGGINGFACE_API_KEY

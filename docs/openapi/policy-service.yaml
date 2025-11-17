@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: Policy Service API
+  description: Policy management and evaluation engine for LLM governance
+  version: 1.0.0
+
+servers:
+  - url: https://api.llm-governance.example.com/api/v1
+
+tags:
+  - name: Policies
+
+paths:
+  /policies:
+    get:
+      tags: [Policies]
+      summary: List policies
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: policy_type
+          in: query
+          schema:
+            type: string
+            enum: [cost, security, compliance, usage, rate_limit, content_filter]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: limit
+          in: query
+          schema: {type: integer, default: 20, maximum: 100}
+        - name: offset
+          in: query
+          schema: {type: integer, default: 0}
+      responses:
+        '200':
+          description: Policies list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      policies:
+                        type: array
+                        items: {$ref: '#/components/schemas/Policy'}
+                      total: {type: integer}
+    post:
+      tags: [Policies]
+      summary: Create policy
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreatePolicyRequest'}
+      responses:
+        '201':
+          description: Policy created
+
+  /policies/{id}:
+    get:
+      tags: [Policies]
+      summary: Get policy
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Policy'}
+    put:
+      tags: [Policies]
+      summary: Update policy
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdatePolicyRequest'}
+      responses:
+        '200':
+          description: Policy updated
+    delete:
+      tags: [Policies]
+      summary: Delete policy
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Policy deleted
+
+  /policies/{id}/evaluate:
+    post:
+      tags: [Policies]
+      summary: Evaluate policy
+      description: Evaluate policy against provided context
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                context:
+                  type: object
+                  description: Context data for evaluation
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      passed: {type: boolean}
+                      violations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rule_violated: {type: string}
+                            severity: {type: string}
+                            message: {type: string}
+                      warnings:
+                        type: array
+                        items: {type: string}
+
+  /policies/{id}/assign:
+    post:
+      tags: [Policies]
+      summary: Assign policy
+      description: Assign policy to team or user
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                team_id: {type: string, format: uuid}
+                user_id: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Policy assigned
+
+  /policies/{id}/violations:
+    get:
+      tags: [Policies]
+      summary: Get policy violations
+      security: [{bearerAuth: []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Violations list
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Policy:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        description: {type: string}
+        policy_type:
+          type: string
+          enum: [cost, security, compliance, usage, rate_limit, content_filter]
+        rules: {type: object}
+        enforcement_level:
+          type: string
+          enum: [strict, warning, monitor]
+        status: {type: string, enum: [active, inactive]}
+        version: {type: integer}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+
+    CreatePolicyRequest:
+      type: object
+      required: [name, policy_type, rules, enforcement_level]
+      properties:
+        name: {type: string}
+        description: {type: string}
+        policy_type: {type: string}
+        rules: {type: object}
+        enforcement_level: {type: string}
+
+    UpdatePolicyRequest:
+      type: object
+      properties:
+        name: {type: string}
+        description: {type: string}
+        rules: {type: object}
+        enforcement_level: {type: string}
+        status: {type: string}

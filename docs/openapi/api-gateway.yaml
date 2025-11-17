@@ -1,0 +1,86 @@
+openapi: 3.0.3
+info:
+  title: API Gateway
+  description: Central API gateway with authentication, routing, and rate limiting
+  version: 1.0.0
+
+servers:
+  - url: https://api.llm-governance.example.com/api/v1
+
+tags:
+  - name: Gateway
+  - name: Health
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Gateway health check
+      responses:
+        '200':
+          description: Gateway is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, example: healthy}
+                  services:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status: {type: string}
+                        latency_ms: {type: integer}
+
+  /health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness check
+      responses:
+        '200':
+          description: Gateway is ready
+
+  /health/live:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      responses:
+        '200':
+          description: Gateway is live
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token
+
+  responses:
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema: {type: integer}
+        X-RateLimit-Remaining:
+          schema: {type: integer}
+        X-RateLimit-Reset:
+          schema: {type: integer}
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: {type: boolean, example: false}
+              error:
+                type: object
+                properties:
+                  code: {type: string, example: RATE_LIMIT_EXCEEDED}
+                  message: {type: string}
+                  details:
+                    type: object
+                    properties:
+                      limit: {type: integer}
+                      remaining: {type: integer}
+                      reset: {type: integer}

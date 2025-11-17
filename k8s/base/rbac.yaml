@@ -1,0 +1,171 @@
+---
+# ServiceAccount for all LLM Governance services
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: llm-governance-sa
+  namespace: llm-governance
+  labels:
+    app: llm-governance-dashboard
+
+---
+# Role for accessing ConfigMaps and Secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: llm-governance-role
+  namespace: llm-governance
+rules:
+# Allow reading ConfigMaps
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading Secrets (limited to specific secrets)
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["llm-governance-secrets"]
+  verbs: ["get"]
+
+# Allow reading Services (for service discovery)
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+
+# Allow reading Pods (for health checks and monitoring)
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+
+---
+# RoleBinding to bind the Role to the ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: llm-governance-rolebinding
+  namespace: llm-governance
+subjects:
+- kind: ServiceAccount
+  name: llm-governance-sa
+  namespace: llm-governance
+roleRef:
+  kind: Role
+  name: llm-governance-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ClusterRole for metrics collection (optional, for Prometheus integration)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: llm-governance-metrics-reader
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+# ClusterRoleBinding for metrics (if needed cluster-wide)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: llm-governance-metrics-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: llm-governance-sa
+  namespace: llm-governance
+roleRef:
+  kind: ClusterRole
+  name: llm-governance-metrics-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (PSP) - for clusters with PSP enabled
+# Note: PSP is deprecated in K8s 1.21+ and removed in 1.25+
+# Use Pod Security Standards/Admission instead
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: llm-governance-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - ALL
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: true
+
+---
+# Role to use PSP
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: llm-governance-psp-role
+  namespace: llm-governance
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - llm-governance-psp
+
+---
+# RoleBinding for PSP
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: llm-governance-psp-rolebinding
+  namespace: llm-governance
+roleRef:
+  kind: Role
+  name: llm-governance-psp-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: llm-governance-sa
+  namespace: llm-governance
+
+---
+# Pod Security Standards (for K8s 1.23+)
+# Apply at namespace level
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-governance
+  labels:
+    name: llm-governance
+    environment: production
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

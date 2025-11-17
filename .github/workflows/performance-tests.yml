@@ -1,0 +1,95 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+
+jobs:
+  load-tests:
+    name: Load Tests (k6)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Start services
+        run: |
+          docker-compose up -d
+          sleep 30
+
+      - name: Run auth load test
+        run: k6 run --out json=results-auth.json tests/performance/auth-load-test.js
+        env:
+          BASE_URL: http://localhost:8080
+
+      - name: Run API load test
+        run: k6 run --out json=results-api.json tests/performance/api-load-test.js
+        env:
+          BASE_URL: http://localhost:8080
+
+      - name: Run policy evaluation test
+        run: k6 run --out json=results-policy.json tests/performance/policy-evaluation-test.js
+        env:
+          BASE_URL: http://localhost:8080
+
+      - name: Run rate limit test
+        run: k6 run --out json=results-ratelimit.json tests/performance/rate-limit-test.js
+        env:
+          BASE_URL: http://localhost:8080
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: results-*.json
+          retention-days: 30
+
+      - name: Check performance thresholds
+        run: |
+          # Parse k6 results and check if SLOs are met
+          echo "Checking performance thresholds..."
+          # Add threshold checking logic here
+
+  lighthouse:
+    name: Lighthouse Performance
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:5173
+            http://localhost:5173/login
+            http://localhost:5173/dashboard
+          configPath: './frontend/lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
