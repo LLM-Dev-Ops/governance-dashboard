@@ -26,6 +26,8 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to create Redis client");
 
     let csrf_secret = config.csrf_secret.clone();
+    let host = config.host.clone();
+    let port = config.port;
 
     HttpServer::new(move || {
         App::new()
@@ -36,7 +38,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(CsrfProtection::new(csrf_secret.clone()))
             .configure(handlers::configure)
     })
-    .bind((config.host.as_str(), config.port))?
+    .bind((host.as_str(), port))?
     .run()
     .await
 }

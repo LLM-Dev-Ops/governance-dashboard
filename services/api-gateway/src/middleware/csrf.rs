@@ -1,4 +1,5 @@
 use actix_web::{
+    body::MessageBody,
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage, HttpResponse,
 };
@@ -90,9 +91,9 @@ impl<S, B> Service<ServiceRequest> for CsrfMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -113,7 +114,7 @@ where
                     || path.starts_with("/auth/register")
                     || path.starts_with("/auth/password-reset")
                     || path.starts_with("/health") {
-                    return service.call(req).await;
+                    return service.call(req).await.map(|res| res.map_into_boxed_body());
                 }
 
                 // Get CSRF token from header
@@ -130,7 +131,7 @@ where
                 if let Some(token) = csrf_token {
                     let csrf_protection = CsrfProtection::new(secret);
                     if csrf_protection.validate_token(token, &session_id) {
-                        return service.call(req).await;
+                        return service.call(req).await.map(|res| res.map_into_boxed_body());
                     }
                 }
 
@@ -145,7 +146,7 @@ where
             }
 
             // For GET, HEAD, OPTIONS - no CSRF check needed
-            service.call(req).await
+            service.call(req).await.map(|res| res.map_into_boxed_body())
         })
     }
 }

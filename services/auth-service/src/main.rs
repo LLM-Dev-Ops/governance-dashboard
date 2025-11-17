@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
     info!("Starting auth-service on {}:{}", config.host, config.port);
 
     // Initialize database connection pool
-    let db_pool = database::create_pool(&config.database_url)
+    let db_pool = llm_governance_database::create_pool(&config.database_url)
         .await
         .expect("Failed to create database pool");
 
