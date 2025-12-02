@@ -16,6 +16,9 @@ members = [
     "libs/common",
     "libs/database",
     "libs/models",
+
+    # Benchmarks
+    "benchmarks",
 ]
 
 # Note: Services are not published to crates.io as they are application binaries

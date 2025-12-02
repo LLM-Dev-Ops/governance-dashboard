@@ -1,0 +1,7 @@
+# Ignore all benchmark output files except the template
+*
+!.gitignore
+!summary.md
+!raw/
+raw/*
+!raw/.gitkeep
