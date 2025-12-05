@@ -1,5 +1,12 @@
 {
   "dependencies": {
-    "claude-flow": "^2.7.31"
+    "claude-flow": "^2.7.41"
+  },
+  "devDependencies": {
+    "@llm-devops/policy-engine": "github:LLM-Dev-Ops/policy-engine",
+    "@llm-dev-ops/llm-registry-sdk": "github:LLM-Dev-Ops/registry",
+    "@llm-dev-ops/observatory-sdk": "github:LLM-Dev-Ops/observatory",
+    "@llm-dev-ops/llm-analytics-api": "github:LLM-Dev-Ops/analytics-hub",
+    "@llm-dev-ops/llm-cost-ops-sdk": "github:LLM-Dev-Ops/cost-ops"
   }
 }

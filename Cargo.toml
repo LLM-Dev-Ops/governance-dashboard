@@ -101,3 +101,11 @@ mockall = "0.12"
 # Additional dependencies
 sha2 = "0.10"
 rust_decimal = "1.33"
+
+# LLM-Dev-Ops Ecosystem Dependencies (Phase 2A - compile-time only)
+# These are upstream dependencies - verified no circular dependency on governance-dashboard
+llm-policy-engine = { git = "https://github.com/LLM-Dev-Ops/policy-engine", branch = "main" }
+llm-registry-core = { git = "https://github.com/LLM-Dev-Ops/registry", branch = "main" }
+llm-cost-ops = { git = "https://github.com/LLM-Dev-Ops/cost-ops", branch = "main" }
+llm-observatory-core = { git = "https://github.com/LLM-Dev-Ops/observatory", branch = "main" }
+llm-analytics-hub = { git = "https://github.com/LLM-Dev-Ops/analytics-hub", branch = "main" }
