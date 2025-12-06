@@ -37,6 +37,9 @@ regex = "1.10"
 serde_yaml = "0.9"
 jsonschema = "0.18"
 
+# LLM-Dev-Ops Infra (Phase 2B) - config, cache, errors
+llm-infra-core.workspace = true
+
 [dev-dependencies]
 mockall.workspace = true
 testcontainers = "0.15"

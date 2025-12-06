@@ -6,5 +6,11 @@ pub mod adapters;
 pub use error::{AppError, Result};
 pub use response::ApiResponse;
 
-// Re-export adapter types for convenience
-pub use adapters::{EcosystemConsumer, UpstreamConfig};
+// Re-export adapter types for convenience (Phase 2B Infra-compatible)
+pub use adapters::{
+    EcosystemConsumer,
+    UpstreamConfig,
+    RetryConfig,
+    CacheConfig,
+    RateLimitConfig,
+};

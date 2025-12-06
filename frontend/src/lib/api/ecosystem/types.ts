@@ -1,12 +1,30 @@
 /**
  * Common types for ecosystem consumer adapters
+ *
+ * Phase 2B: Integrated with @llm-dev-ops/infra for standardized config patterns
  */
 
-/** Configuration for upstream service connections */
+/** Configuration for upstream service connections
+ *
+ * Note: This interface follows the LLM-Dev-Ops Infra config pattern.
+ * For production, consider importing from @llm-dev-ops/infra directly:
+ * import { UpstreamConfig } from '@llm-dev-ops/infra';
+ */
 export interface UpstreamConfig {
   baseUrl: string;
   apiKey?: string;
   timeoutMs?: number;
+  /** Retry configuration from Infra module */
+  retryConfig?: {
+    maxRetries: number;
+    initialDelayMs: number;
+    maxDelayMs: number;
+  };
+  /** Cache configuration from Infra module */
+  cacheConfig?: {
+    enabled: boolean;
+    ttlSeconds: number;
+  };
 }
 
 /** Generic API response wrapper */

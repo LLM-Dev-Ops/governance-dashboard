@@ -35,6 +35,9 @@ validator.workspace = true
 envy.workspace = true
 argon2.workspace = true
 
+# LLM-Dev-Ops Infra (Phase 2B) - config, logging, errors
+llm-infra-core.workspace = true
+
 [dev-dependencies]
 mockall.workspace = true
 testcontainers = "0.15"

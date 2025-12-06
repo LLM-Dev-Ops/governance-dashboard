@@ -37,3 +37,6 @@ sha2 = "0.10"
 # merkle_tree = "0.1"  # Removed: depends on yanked rmp-serde versions
 rs_merkle = "1.4"  # Actively maintained alternative
 hex = "0.4"
+
+# LLM-Dev-Ops Infra (Phase 2B) - logging, tracing
+llm-infra-core.workspace = true

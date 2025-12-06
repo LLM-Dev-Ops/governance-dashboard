@@ -36,3 +36,6 @@ reqwest.workspace = true
 # Service-specific dependencies
 async-trait = "0.1"
 base64 = "0.22"
+
+# LLM-Dev-Ops Infra (Phase 2B) - config, retry, rate-limit
+llm-infra-core.workspace = true

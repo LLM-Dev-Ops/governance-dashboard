@@ -41,3 +41,6 @@ actix-web-httpauth = "0.8"
 futures = "0.3"
 sha2 = "0.10"
 base64 = "0.22"
+
+# LLM-Dev-Ops Infra (Phase 2B) - rate limiting, caching, retry
+llm-infra-core.workspace = true

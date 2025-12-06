@@ -41,6 +41,7 @@
 	"dependencies": {
 		"@llm-dev-ops/llm-governance-sdk": "^1.0.1",
 		"@llm-dev-ops/llm-governance-types": "^1.0.0",
+		"@llm-dev-ops/infra": "^0.1.0",
 		"@sveltejs/adapter-node": "^5.4.0",
 		"@tanstack/svelte-query": "^6.0.8",
 		"chart.js": "^4.5.1",

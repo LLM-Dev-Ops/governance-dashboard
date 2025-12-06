@@ -37,3 +37,6 @@ prometheus.workspace = true
 opentelemetry = "0.24"
 opentelemetry-otlp = "0.17"
 lazy_static = "1.5"
+
+# LLM-Dev-Ops Infra (Phase 2B) - metrics, logging, tracing
+llm-infra-core.workspace = true
