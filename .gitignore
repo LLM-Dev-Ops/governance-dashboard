@@ -86,3 +86,9 @@ out/
 # Package manager locks (keep package-lock.json, ignore others)
 pnpm-lock.yaml
 yarn.lock
+
+# Claude Code / Claude Flow
+.claude/
+.claude-flow/
+CLAUDE.md
+.mcp.json

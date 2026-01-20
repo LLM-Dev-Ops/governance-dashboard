@@ -13,4 +13,5 @@ export * from './registry';
 export * from './cost-ops';
 export * from './observatory';
 export * from './analytics-hub';
+export * from './governance-audit';
 export * from './types';

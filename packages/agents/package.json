@@ -1,0 +1,64 @@
+{
+  "name": "@llm-dev-ops/governance-agents",
+  "version": "1.0.0",
+  "description": "LLM Governance Dashboard Agent Infrastructure - Google Cloud Edge Functions",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./usage-oversight": {
+      "types": "./dist/agents/usage-oversight/index.d.ts",
+      "import": "./dist/agents/usage-oversight/index.js"
+    },
+    "./change-impact": {
+      "types": "./dist/agents/change-impact/index.d.ts",
+      "import": "./dist/agents/change-impact/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "deploy": "gcloud functions deploy governance-agents --runtime nodejs20 --trigger-http"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@llm-dev-ops/llm-governance-types": "*"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "llm",
+    "governance",
+    "agents",
+    "cloud-functions",
+    "oversight"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LLM-Dev-Ops/governance-dashboard"
+  },
+  "license": "MIT"
+}

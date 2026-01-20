@@ -250,6 +250,142 @@ impl EcosystemConsumer for ObservatoryConsumer {
     }
 }
 
+// ============================================================================
+// Telemetry Emission Types (for agents to emit telemetry)
+// ============================================================================
+
+/// Request to emit a telemetry event to Observatory
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmitTelemetryRequest {
+    pub event_type: TelemetryEventType,
+    pub source: String,
+    pub organization_id: Option<String>,
+    pub user_id: Option<String>,
+    pub model_id: Option<String>,
+    pub attributes: HashMap<String, serde_json::Value>,
+    pub metrics: EventMetrics,
+}
+
+/// Response from emitting telemetry
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmitTelemetryResponse {
+    pub event_id: String,
+    pub timestamp: String,
+    pub acknowledged: bool,
+}
+
+/// Request to emit a trace span
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmitSpanRequest {
+    pub trace_id: Option<String>,
+    pub parent_span_id: Option<String>,
+    pub operation_name: String,
+    pub service_name: String,
+    pub status: SpanStatus,
+    pub attributes: HashMap<String, serde_json::Value>,
+    pub events: Vec<SpanEvent>,
+}
+
+/// Response from emitting a span
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmitSpanResponse {
+    pub trace_id: String,
+    pub span_id: String,
+    pub acknowledged: bool,
+}
+
+/// Agent telemetry event for governance agents
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentTelemetryEvent {
+    pub agent_id: String,
+    pub agent_version: String,
+    pub decision_type: String,
+    pub organization_id: String,
+    pub decision_event_id: String,
+    pub execution_duration_ms: f64,
+    pub confidence_score: f64,
+    pub risk_score: Option<f64>,
+    pub findings_count: u32,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+impl ObservatoryConsumer {
+    // ... existing methods ...
+
+    /// Emit a telemetry event to Observatory
+    pub async fn emit_telemetry(&self, request: EmitTelemetryRequest) -> Result<EmitTelemetryResponse> {
+        let url = format!("{}/api/v1/telemetry/events", self.config.base_url);
+        self.post_json(&url, &request).await
+    }
+
+    /// Emit a trace span to Observatory
+    pub async fn emit_span(&self, request: EmitSpanRequest) -> Result<EmitSpanResponse> {
+        let url = format!("{}/api/v1/traces/spans", self.config.base_url);
+        self.post_json(&url, &request).await
+    }
+
+    /// Emit agent-specific telemetry for governance agents
+    pub async fn emit_agent_telemetry(&self, event: AgentTelemetryEvent) -> Result<EmitTelemetryResponse> {
+        let mut attributes = event.attributes.clone();
+        attributes.insert("agent_id".to_string(), serde_json::json!(event.agent_id));
+        attributes.insert("agent_version".to_string(), serde_json::json!(event.agent_version));
+        attributes.insert("decision_type".to_string(), serde_json::json!(event.decision_type));
+        attributes.insert("decision_event_id".to_string(), serde_json::json!(event.decision_event_id));
+        attributes.insert("confidence_score".to_string(), serde_json::json!(event.confidence_score));
+        if let Some(risk) = event.risk_score {
+            attributes.insert("risk_score".to_string(), serde_json::json!(risk));
+        }
+        attributes.insert("findings_count".to_string(), serde_json::json!(event.findings_count));
+
+        let request = EmitTelemetryRequest {
+            event_type: TelemetryEventType::Custom,
+            source: event.agent_id.clone(),
+            organization_id: Some(event.organization_id),
+            user_id: None,
+            model_id: None,
+            attributes,
+            metrics: EventMetrics {
+                latency_ms: Some(event.execution_duration_ms),
+                token_count: None,
+                error_count: None,
+                custom_metrics: HashMap::new(),
+            },
+        };
+
+        self.emit_telemetry(request).await
+    }
+
+    /// Internal helper to POST JSON to upstream
+    async fn post_json<T, R>(&self, url: &str, body: &T) -> Result<R>
+    where
+        T: Serialize,
+        R: for<'de> Deserialize<'de>,
+    {
+        let mut request = self.client.post(url).json(body);
+
+        if let Some(ref api_key) = self.config.api_key {
+            request = request.header("Authorization", format!("Bearer {}", api_key));
+        }
+
+        let response = request
+            .send()
+            .await
+            .map_err(|e| AppError::Internal(format!("Observatory request failed: {}", e)))?;
+
+        if !response.status().is_success() {
+            return Err(AppError::Internal(format!(
+                "Observatory returned status: {}",
+                response.status()
+            )));
+        }
+
+        response
+            .json()
+            .await
+            .map_err(|e| AppError::Internal(format!("Failed to parse Observatory response: {}", e)))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

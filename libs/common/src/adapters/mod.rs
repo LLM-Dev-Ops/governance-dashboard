@@ -26,6 +26,8 @@ pub mod registry;
 pub mod cost_ops;
 pub mod observatory;
 pub mod analytics_hub;
+pub mod ruvector;
+pub mod change_impact;
 
 use crate::error::Result;
 use async_trait::async_trait;
