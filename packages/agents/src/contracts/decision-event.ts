@@ -27,6 +27,12 @@ export const DecisionTypeSchema = z.enum([
   'approval_decision',
   // Change Impact Agent
   'change_impact_assessment',
+  // Phase 4 Layer 1 - Governance & FinOps Signals
+  // NOTE: Agents MUST emit these signals but MUST NOT auto-enforce or auto-approve
+  'cost_risk_signal',           // Emitted when cost thresholds are approached/exceeded
+  'budget_threshold_signal',     // Emitted when budget thresholds are crossed
+  'policy_violation_signal',     // Emitted when policy violations are detected
+  'approval_required_signal',    // Emitted when human approval is required
 ]);
 
 export type DecisionType = z.infer<typeof DecisionTypeSchema>;

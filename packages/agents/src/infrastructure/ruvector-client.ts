@@ -69,9 +69,26 @@ export class RuvectorClient {
    * Persist a DecisionEvent
    *
    * Every agent invocation MUST call this exactly once.
+   * Falls back gracefully if RuVector endpoint is unavailable.
    */
   async persistDecisionEvent(event: DecisionEvent): Promise<void> {
-    await this.post('/api/v1/decision-events', event);
+    try {
+      await this.post('/api/v1/decision-events', event);
+    } catch (error: any) {
+      // Graceful degradation: log but don't fail the agent
+      // Phase 4 Layer 1: Emit signal but don't block execution
+      console.warn(`[RuVector] Failed to persist DecisionEvent ${event.id}: ${error.message}`);
+      console.warn(`[RuVector] Event data logged for recovery:`, JSON.stringify({
+        id: event.id,
+        agent_id: event.agent_id,
+        decision_type: event.decision_type,
+        timestamp: event.timestamp,
+      }));
+      // Re-throw only for critical errors (auth failures)
+      if (error.status === 401 || error.status === 403) {
+        throw error;
+      }
+    }
   }
 
   /**

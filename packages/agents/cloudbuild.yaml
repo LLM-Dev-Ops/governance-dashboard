@@ -1,0 +1,99 @@
+# Phase 4 Layer 1 - Cloud Build Configuration
+# Builds and deploys governance agents to Google Cloud Run
+#
+# Required Substitutions (set in Cloud Build trigger):
+#   _SERVICE_NAME: governance-agents
+#   _REGION: us-central1
+#   _PROJECT_ID: your-project-id
+#
+# Required Secrets (in Google Secret Manager):
+#   - RUVECTOR_SERVICE_URL: URL of the ruvector service
+#   - RUVECTOR_API_KEY: API key for ruvector authentication
+
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}'
+      - '-t'
+      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:latest'
+      - '-f'
+      - 'packages/agents/Dockerfile'
+      - 'packages/agents'
+    id: 'build-image'
+
+  # Step 2: Push the Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}'
+    id: 'push-image'
+    waitFor: ['build-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:latest'
+    waitFor: ['build-image']
+
+  # Step 3: Deploy to Cloud Run with secrets from Secret Manager
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated=false'
+      - '--set-secrets'
+      - 'RUVECTOR_SERVICE_URL=RUVECTOR_SERVICE_URL:latest,RUVECTOR_API_KEY=RUVECTOR_API_KEY:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest'
+      - '--set-env-vars'
+      - 'AGENT_PHASE=phase4,AGENT_LAYER=layer1,MAX_TOKENS=1200,MAX_LATENCY_MS=2500,NODE_ENV=production'
+      - '--memory'
+      - '256Mi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '3s'
+      - '--concurrency'
+      - '80'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--service-account'
+      - 'agentics-agents-sa@${_PROJECT_ID}.iam.gserviceaccount.com'
+    id: 'deploy-cloud-run'
+    waitFor: ['push-image']
+
+# Images to be stored in Container Registry
+images:
+  - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}'
+  - 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:latest'
+
+# Substitution defaults
+substitutions:
+  _SERVICE_NAME: governance-agents
+  _REGION: us-central1
+  _VERSION: v1.0.0
+
+# Build options
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+# Build timeout
+timeout: '600s'
+
+# Tags for organization
+tags:
+  - 'governance-agents'
+  - 'phase4-layer1'
+  - 'cloud-run'

@@ -21,6 +21,10 @@
     "./change-impact": {
       "types": "./dist/agents/change-impact/index.d.ts",
       "import": "./dist/agents/change-impact/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js"
     }
   },
   "scripts": {
@@ -29,7 +33,10 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "deploy": "gcloud functions deploy governance-agents --runtime nodejs20 --trigger-http"
+    "deploy:functions": "gcloud functions deploy governance-agents --runtime nodejs20 --trigger-http",
+    "deploy:cloudrun": "gcloud builds submit --config=cloudbuild.yaml",
+    "start": "node dist/handlers/cloud-run.js",
+    "start:dev": "node --watch dist/handlers/cloud-run.js"
   },
   "dependencies": {
     "zod": "^3.23.0"
