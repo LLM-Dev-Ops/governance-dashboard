@@ -10,3 +10,4 @@
 export * from './ruvector-client.js';
 export * from './decision-event-emitter.js';
 export * from './telemetry.js';
+export * from './execution-span-manager.js';

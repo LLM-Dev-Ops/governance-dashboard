@@ -15,6 +15,18 @@ import { createUsageOversightAgentFromEnv } from '../agents/usage-oversight/inde
 import { createChangeImpactAgentFromEnv } from '../agents/change-impact/index.js';
 import type { AgentContext } from '../contracts/base-agent.js';
 import { generateUUID, getCurrentTimestamp } from '../contracts/validation.js';
+import {
+  extractExecutionContext,
+  createRepoSpan,
+  createAgentSpan,
+  attachArtifact,
+  completeAgentSpan,
+  failAgentSpan,
+  finalizeRepoSpan,
+  buildExecutionResponse,
+  buildContextRejectionResponse,
+} from '../infrastructure/execution-span-manager.js';
+import type { RepoSpan } from '../contracts/execution-span.js';
 
 /**
  * Route configuration for agents
@@ -71,6 +83,9 @@ export async function handleRequest(req: Request, res: Response): Promise<void> 
 
   const path = req.path.replace(/^\/+|\/+$/g, ''); // Normalize path
 
+  // Track active repo span for error handling
+  let activeRepoSpan: RepoSpan | undefined;
+
   try {
     // Health check
     if (path === 'health') {
@@ -121,25 +136,75 @@ export async function handleRequest(req: Request, res: Response): Promise<void> 
         return;
       }
 
-      // Create agent and execute
-      const agent = agentFactory();
+      // --- EXECUTION SPAN ENFORCEMENT ---
+      // Extract execution context (REQUIRED by Foundational Execution Unit contract)
+      const execCtx = extractExecutionContext(
+        req.headers as Record<string, string | string[] | undefined>
+      );
+      if (!execCtx) {
+        res.status(400).json(buildContextRejectionResponse());
+        return;
+      }
+
+      // Create repo-level span
+      const repoSpan = createRepoSpan(execCtx);
+      activeRepoSpan = repoSpan;
+
+      // Create agent context (preserves existing behavior)
       const context = createContextFromRequest(req);
 
-      const result = await agent.execute(req.body, context);
+      // Create agent-level span
+      const agentSpan = createAgentSpan(repoSpan, agentId);
 
-      if (result.success) {
-        res.status(200).json({
-          success: true,
-          decision_event_id: result.decision_event.id,
-          output: result.output,
+      // Execute agent
+      const agent = agentFactory();
+      let result;
+      try {
+        result = await agent.execute(req.body, context);
+      } catch (agentError: any) {
+        failAgentSpan(agentSpan, {
+          code: agentError.code || 'AGENT_UNHANDLED_ERROR',
+          message: agentError.message || 'Unhandled agent error',
         });
+        repoSpan.agent_spans.push(agentSpan);
+        finalizeRepoSpan(repoSpan);
+        res.status(500).json(buildExecutionResponse(repoSpan));
+        return;
+      }
+
+      // Attach DecisionEvent as artifact on the agent span
+      if (result.decision_event) {
+        attachArtifact(
+          agentSpan,
+          'decision_event',
+          result.decision_event as unknown as Record<string, unknown>
+        );
+      }
+
+      // Finalize agent span based on result
+      if (result.success) {
+        completeAgentSpan(agentSpan);
       } else {
-        res.status(400).json({
-          success: false,
-          decision_event_id: result.decision_event.id,
-          error: result.error,
+        failAgentSpan(agentSpan, {
+          code: result.error?.code || 'AGENT_FAILED',
+          message: result.error?.message || 'Agent execution failed',
+          details: result.error?.details,
         });
       }
+
+      // Attach agent span to repo span and finalize
+      repoSpan.agent_spans.push(agentSpan);
+      finalizeRepoSpan(repoSpan);
+
+      const executionResult: Record<string, unknown> = {
+        success: result.success,
+        decision_event_id: result.decision_event?.id,
+        output: result.success ? result.output : undefined,
+        error: result.success ? undefined : result.error,
+      };
+
+      const httpStatus = result.success ? 200 : 400;
+      res.status(httpStatus).json(buildExecutionResponse(repoSpan, executionResult));
       return;
     }
 
@@ -152,12 +217,24 @@ export async function handleRequest(req: Request, res: Response): Promise<void> 
     });
   } catch (error: any) {
     console.error('Edge function error:', error);
-    res.status(500).json({
-      error: {
+
+    // If we were in span execution mode, finalize and return spans
+    if (activeRepoSpan) {
+      activeRepoSpan.end_time = getCurrentTimestamp();
+      activeRepoSpan.status = 'FAILED';
+      activeRepoSpan.error = {
         code: 'INTERNAL_ERROR',
         message: error.message || 'Internal server error',
-      },
-    });
+      };
+      res.status(500).json(buildExecutionResponse(activeRepoSpan));
+    } else {
+      res.status(500).json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error.message || 'Internal server error',
+        },
+      });
+    }
   }
 }
 

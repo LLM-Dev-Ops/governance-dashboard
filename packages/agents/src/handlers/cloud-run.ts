@@ -26,6 +26,18 @@ import {
   validatePerformanceBudgets,
   createPhase4Telemetry,
 } from '../config/phase4-layer1.js';
+import {
+  extractExecutionContext,
+  createRepoSpan,
+  createAgentSpan,
+  attachArtifact,
+  completeAgentSpan,
+  failAgentSpan,
+  finalizeRepoSpan,
+  buildExecutionResponse,
+  buildContextRejectionResponse,
+} from '../infrastructure/execution-span-manager.js';
+import type { RepoSpan } from '../contracts/execution-span.js';
 
 /**
  * Environment configuration
@@ -126,6 +138,9 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     return;
   }
 
+  // Track active repo span for error handling
+  let activeRepoSpan: RepoSpan | undefined;
+
   try {
     // Health check
     if (path === 'health') {
@@ -189,11 +204,77 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 
       // Parse request body
       const body = await parseBody(req);
+
+      // --- EXECUTION SPAN ENFORCEMENT ---
+      // Extract execution context (REQUIRED by Foundational Execution Unit contract)
+      const execCtx = extractExecutionContext(
+        req.headers as Record<string, string | string[] | undefined>
+      );
+      if (!execCtx) {
+        sendJson(res, 400, buildContextRejectionResponse());
+        return;
+      }
+
+      // Create repo-level span
+      const repoSpan = createRepoSpan(execCtx);
+      activeRepoSpan = repoSpan;
+
+      // Create agent context (preserves existing behavior)
       const context = createContext(req, body);
+
+      // Create agent-level span
+      const agentSpan = createAgentSpan(repoSpan, agentId);
 
       // Create and execute agent
       const agent = agentFactory();
-      const result = await agent.execute(body, context);
+      let result;
+      try {
+        result = await agent.execute(body, context);
+      } catch (agentError: any) {
+        // Agent threw an unhandled exception
+        failAgentSpan(agentSpan, {
+          code: agentError.code || 'AGENT_UNHANDLED_ERROR',
+          message: agentError.message || 'Unhandled agent error',
+        });
+        repoSpan.agent_spans.push(agentSpan);
+        finalizeRepoSpan(repoSpan);
+
+        const latencyMs = Date.now() - startTime;
+        log('ERROR', `Agent ${agentId} unhandled error`, {
+          agent_id: agentId,
+          error: agentError.message,
+          latency_ms: latencyMs,
+          repo_span_id: repoSpan.span_id,
+          agent_span_id: agentSpan.span_id,
+        });
+
+        sendJson(res, 500, buildExecutionResponse(repoSpan));
+        return;
+      }
+
+      // Attach DecisionEvent as artifact on the agent span
+      if (result.decision_event) {
+        attachArtifact(
+          agentSpan,
+          'decision_event',
+          result.decision_event as unknown as Record<string, unknown>
+        );
+      }
+
+      // Finalize agent span based on result
+      if (result.success) {
+        completeAgentSpan(agentSpan);
+      } else {
+        failAgentSpan(agentSpan, {
+          code: result.error?.code || 'AGENT_FAILED',
+          message: result.error?.message || 'Agent execution failed',
+          details: result.error?.details,
+        });
+      }
+
+      // Attach agent span to repo span and finalize
+      repoSpan.agent_spans.push(agentSpan);
+      finalizeRepoSpan(repoSpan);
 
       // Calculate execution metrics
       const latencyMs = Date.now() - startTime;
@@ -206,6 +287,8 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         latency_ms: latencyMs,
         decision_event_id: result.decision_event?.id,
         budget_violations: budgetCheck.violations,
+        repo_span_id: repoSpan.span_id,
+        agent_span_id: agentSpan.span_id,
       });
 
       // Warn if performance budget exceeded (but don't fail - just emit signal)
@@ -221,21 +304,16 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       // Build response with Phase 4 telemetry
       const telemetry = createPhase4Telemetry(latencyMs, context.caller.service);
 
-      if (result.success) {
-        sendJson(res, 200, {
-          success: true,
-          decision_event_id: result.decision_event.id,
-          output: result.output,
-          telemetry,
-        });
-      } else {
-        sendJson(res, 400, {
-          success: false,
-          decision_event_id: result.decision_event?.id,
-          error: result.error,
-          telemetry,
-        });
-      }
+      const executionResult: Record<string, unknown> = {
+        success: result.success,
+        decision_event_id: result.decision_event?.id,
+        output: result.success ? result.output : undefined,
+        error: result.success ? undefined : result.error,
+        telemetry,
+      };
+
+      const httpStatus = result.success ? 200 : 400;
+      sendJson(res, httpStatus, buildExecutionResponse(repoSpan, executionResult));
       return;
     }
 
@@ -255,13 +333,24 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       latency_ms: latencyMs,
     });
 
-    sendJson(res, 500, {
-      error: {
+    // If we were in span execution mode, finalize and return spans
+    if (activeRepoSpan) {
+      activeRepoSpan.end_time = getCurrentTimestamp();
+      activeRepoSpan.status = 'FAILED';
+      activeRepoSpan.error = {
         code: 'INTERNAL_ERROR',
         message: error.message || 'Internal server error',
-      },
-      telemetry: createPhase4Telemetry(latencyMs),
-    });
+      };
+      sendJson(res, 500, buildExecutionResponse(activeRepoSpan));
+    } else {
+      sendJson(res, 500, {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error.message || 'Internal server error',
+        },
+        telemetry: createPhase4Telemetry(latencyMs),
+      });
+    }
   }
 }
 

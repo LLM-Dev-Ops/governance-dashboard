@@ -12,3 +12,4 @@ export * from './usage-oversight.js';
 export * from './change-impact.js';
 export * from './base-agent.js';
 export * from './validation.js';
+export * from './execution-span.js';
