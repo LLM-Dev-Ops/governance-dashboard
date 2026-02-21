@@ -1,38 +1,24 @@
 # This file specifies files that are *not* uploaded to Google Cloud
-# using gcloud. It follows the same syntax as .gitignore, with the addition of
-# "#!include" directives (which insert the entries of the given .gitignore-style
-# file at that point).
-#
-# For more information, run:
-#   $ gcloud topic gcloudignore
-#
+# using gcloud. It follows the same syntax as .gitignore.
 .gcloudignore
 .git
 .gitignore
 
-# Dependencies (rebuilt on deploy)
+# Dependencies (rebuilt via npm install on deploy)
 node_modules
 
-# Source (only dist/ is needed at runtime)
-src/
-*.ts
-!dist/**/*.js
-!dist/**/*.d.ts
+# Pre-built output (rebuilt via npm run gcp-build on deploy)
+dist/
 
 # Test files
 **/*.test.ts
-**/*.test.js
 **/*.spec.ts
-**/*.spec.js
 vitest.config.ts
 coverage/
 
-# Build config (not needed at runtime)
-tsconfig.json
+# Deployment config (not needed at runtime)
 cloudbuild.yaml
 Dockerfile
-.eslintrc*
-.prettierrc*
 
 # Documentation
 deploy/
