@@ -29,6 +29,7 @@ export * from './infrastructure/index.js';
 // Agents
 export * from './agents/usage-oversight/index.js';
 export * from './agents/change-impact/index.js';
+export * from './agents/governance-audit/index.js';
 
 // Handlers - Entry points for deployment
 export * from './handlers/index.js';

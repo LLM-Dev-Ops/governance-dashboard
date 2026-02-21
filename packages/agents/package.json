@@ -22,6 +22,10 @@
       "types": "./dist/agents/change-impact/index.d.ts",
       "import": "./dist/agents/change-impact/index.js"
     },
+    "./governance-audit": {
+      "types": "./dist/agents/governance-audit/index.d.ts",
+      "import": "./dist/agents/governance-audit/index.js"
+    },
     "./config": {
       "types": "./dist/config/index.d.ts",
       "import": "./dist/config/index.js"
@@ -33,7 +37,7 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "deploy:functions": "gcloud functions deploy governance-agents --runtime nodejs20 --trigger-http",
+    "deploy:functions": "gcloud functions deploy governance-dashboard-agents --runtime nodejs20 --trigger-http --region us-central1 --project agentics-dev --entry-point handler --memory 512MB --timeout 60s --no-allow-unauthenticated --source=.",
     "deploy:cloudrun": "gcloud builds submit --config=cloudbuild.yaml",
     "start": "node dist/handlers/cloud-run.js",
     "start:dev": "node --watch dist/handlers/cloud-run.js"

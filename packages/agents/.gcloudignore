@@ -7,10 +7,38 @@
 #   $ gcloud topic gcloudignore
 #
 .gcloudignore
-# If you would like to upload your .git directory, .gitignore file or files
-# from your .gitignore file, remove the corresponding line
-# below:
 .git
 .gitignore
 
+# Dependencies (rebuilt on deploy)
 node_modules
+
+# Source (only dist/ is needed at runtime)
+src/
+*.ts
+!dist/**/*.js
+!dist/**/*.d.ts
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+vitest.config.ts
+coverage/
+
+# Build config (not needed at runtime)
+tsconfig.json
+cloudbuild.yaml
+Dockerfile
+.eslintrc*
+.prettierrc*
+
+# Documentation
+deploy/
+docs/
+*.md
+
+# IDE
+.vscode/
+.idea/
