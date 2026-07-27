@@ -1,15 +1,22 @@
 LLM Governance Dashboard
-Version: 1.0.0
+Version: 0.x-dev
 Build Date: 2025-11-16
 Git Commit: 9b307987f0e7de7ce5c46f31a92ff8cd5b58cc00
-Release Type: Stable
+Release Type: Pre-release (in development, not shipped)
 Release Name: "Foundation"
 
-CHANGELOG SUMMARY (v1.0.0):
+NOTE (ADR-0001, 2026-07-27): this file previously declared "Version: 1.0.0 /
+Release Type: Stable". No v1.0.0 was released. docs/COMPLETION_ROADMAP.md places
+v1.0 at weeks 19-24 of an 18-24 week plan and every phase gate box is unchecked.
+The section below is a statement of TARGET SCOPE, not of delivered features.
+Items verified as not yet delivered are marked [PLANNED] with a tracking issue.
+
+CHANGELOG SUMMARY (target scope for v1.0.0 — NOT yet delivered):
 
 FEATURES:
 - Complete microservices architecture (8 services)
-- Authentication with JWT, OAuth2, and MFA
+- [PLANNED] Authentication with JWT, OAuth2, and MFA — auth-service endpoints
+  return 501; OAuth/MFA methods are todo!() panics (issues #1, #2, #4, #5)
 - Role-based access control (RBAC) with inheritance
 - Policy engine with 6 policy types
 - Immutable audit logging with integrity verification
@@ -18,8 +25,8 @@ FEATURES:
 - Multi-provider LLM integration (OpenAI, Anthropic)
 - SvelteKit dashboard with real-time updates
 - Docker and Kubernetes deployment support
-- Comprehensive test suite (300+ tests)
-- Complete documentation
+- [PLANNED] Comprehensive test suite — auth-service's 29 tests are empty stubs (issue #6)
+- [PLANNED] Complete documentation
 
 SERVICES:
 - API Gateway (Port 8080)
@@ -72,16 +79,25 @@ DOCUMENTATION:
 - SUPPORT_GUIDE.md - Support information
 - API documentation (OpenAPI/Swagger)
 
-TESTING:
+TESTING (target, not measured):
 - Unit tests: 100+ tests
 - Integration tests: 30+ tests
 - E2E tests: 35+ tests
 - Performance tests: 4 scenarios
 - Security tests: 50+ tests
 - Total: 300+ tests
+Measured 2026-07-27: `cargo check --workspace` exits 101 (unresolved llm-infra-core,
+issue #7), so no Rust test count is currently verifiable. All 29 auth-service
+tests are empty bodies that pass vacuously (issue #6).
 
-KNOWN ISSUES:
-- None for v1.0.0 release
+KNOWN ISSUES (see github.com/LLM-Dev-Ops/governance-dashboard/issues):
+- #7 Cargo workspace fails to resolve llm-infra-core; nothing builds
+- #2 AuthMiddleware fails open (no JWT validation)
+- #3 RateLimitMiddleware is a no-op
+- #1 Core auth endpoints return 501
+- #4 MFA unimplemented (todo!() panics)
+- #5 OAuth2 unimplemented (todo!() panics)
+- #6 auth-service tests are empty stubs
 
 UPGRADE NOTES:
 - First release, no upgrades required
@@ -93,7 +109,7 @@ CONTRIBUTORS:
 - DevOps Team
 - Documentation Team
 
-LICENSE: MIT
+LICENSE: Apache-2.0 (see LICENSE; this file previously said MIT in error)
 
 For full changelog, see CHANGELOG.md
 For upgrade instructions, see UPGRADE_GUIDE.md (future releases)

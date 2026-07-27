@@ -14,7 +14,7 @@ mod jwt_service_tests {
         let user_id = Uuid::new_v4();
         let email = "test@example.com";
 
-        // TODO: Implement JWT generation test
+        // TODO(#6): Implement JWT generation test
         // let token = JwtService::generate_token(user_id, email, TEST_SECRET);
         // assert!(token.is_ok());
         assert!(true); // Placeholder
@@ -23,35 +23,35 @@ mod jwt_service_tests {
     #[test]
     fn test_jwt_token_validation() {
         // Test JWT token validation
-        // TODO: Implement JWT validation test
+        // TODO(#6): Implement JWT validation test
         assert!(true); // Placeholder
     }
 
     #[test]
     fn test_jwt_token_expiration() {
         // Test that expired tokens are rejected
-        // TODO: Implement JWT expiration test
+        // TODO(#6): Implement JWT expiration test
         assert!(true); // Placeholder
     }
 
     #[test]
     fn test_jwt_invalid_signature() {
         // Test that tokens with invalid signatures are rejected
-        // TODO: Implement invalid signature test
+        // TODO(#6): Implement invalid signature test
         assert!(true); // Placeholder
     }
 
     #[test]
     fn test_jwt_missing_claims() {
         // Test that tokens with missing required claims are rejected
-        // TODO: Implement missing claims test
+        // TODO(#6): Implement missing claims test
         assert!(true); // Placeholder
     }
 
     #[test]
     fn test_refresh_token_generation() {
         // Test refresh token generation
-        // TODO: Implement refresh token test
+        // TODO(#6): Implement refresh token test
         assert!(true); // Placeholder
     }
 }

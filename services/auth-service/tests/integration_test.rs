@@ -6,7 +6,7 @@ mod integration_tests {
     use super::*;
 
     async fn setup_test_db() -> PgPool {
-        // TODO: Setup test database using testcontainers
+        // TODO(#6): Setup test database using testcontainers
         // For now, this is a placeholder
         todo!("Setup test database")
     }
@@ -18,7 +18,7 @@ mod integration_tests {
         // 1. Register user
         // 2. Verify email
         // 3. Login
-        // TODO: Implement full registration flow test
+        // TODO(#6): Implement full registration flow test
         assert!(true);
     }
 
@@ -30,7 +30,7 @@ mod integration_tests {
         // 2. Get access token
         // 3. Use access token
         // 4. Refresh token
-        // TODO: Implement full authentication flow test
+        // TODO(#6): Implement full authentication flow test
         assert!(true);
     }
 
@@ -42,7 +42,7 @@ mod integration_tests {
         // 2. Generate QR code
         // 3. Verify TOTP code
         // 4. Login with MFA
-        // TODO: Implement MFA flow test
+        // TODO(#6): Implement MFA flow test
         assert!(true);
     }
 
@@ -54,7 +54,7 @@ mod integration_tests {
         // 2. Handle callback
         // 3. Create/link user
         // 4. Generate JWT
-        // TODO: Implement OAuth integration test
+        // TODO(#6): Implement OAuth integration test
         assert!(true);
     }
 
@@ -66,7 +66,7 @@ mod integration_tests {
         // 2. Verify reset token
         // 3. Update password
         // 4. Login with new password
-        // TODO: Implement password reset test
+        // TODO(#6): Implement password reset test
         assert!(true);
     }
 }

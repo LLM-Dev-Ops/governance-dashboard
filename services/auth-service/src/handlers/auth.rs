@@ -29,7 +29,7 @@ pub struct AuthResponse {
 
 #[post("/auth/login")]
 async fn login(req: web::Json<LoginRequest>) -> impl Responder {
-    // TODO: Implement login logic
+    // TODO(#1): Implement login logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Login endpoint not yet implemented"
     }))
@@ -37,7 +37,7 @@ async fn login(req: web::Json<LoginRequest>) -> impl Responder {
 
 #[post("/auth/register")]
 async fn register(req: web::Json<RegisterRequest>) -> impl Responder {
-    // TODO: Implement registration logic
+    // TODO(#1): Implement registration logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Register endpoint not yet implemented"
     }))
@@ -45,7 +45,7 @@ async fn register(req: web::Json<RegisterRequest>) -> impl Responder {
 
 #[post("/auth/refresh")]
 async fn refresh_token() -> impl Responder {
-    // TODO: Implement token refresh logic
+    // TODO(#1): Implement token refresh logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Refresh token endpoint not yet implemented"
     }))
@@ -53,7 +53,7 @@ async fn refresh_token() -> impl Responder {
 
 #[post("/auth/logout")]
 async fn logout() -> impl Responder {
-    // TODO: Implement logout logic
+    // TODO(#1): Implement logout logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Logout endpoint not yet implemented"
     }))

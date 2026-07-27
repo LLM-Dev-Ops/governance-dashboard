@@ -9,7 +9,7 @@ pub struct OAuthCallbackRequest {
 
 #[get("/oauth/google")]
 async fn google_oauth_init() -> impl Responder {
-    // TODO: Implement Google OAuth initialization
+    // TODO(#5): Implement Google OAuth initialization
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Google OAuth init endpoint not yet implemented"
     }))
@@ -17,7 +17,7 @@ async fn google_oauth_init() -> impl Responder {
 
 #[post("/oauth/google/callback")]
 async fn google_oauth_callback(req: web::Json<OAuthCallbackRequest>) -> impl Responder {
-    // TODO: Implement Google OAuth callback
+    // TODO(#5): Implement Google OAuth callback
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Google OAuth callback endpoint not yet implemented"
     }))
@@ -25,7 +25,7 @@ async fn google_oauth_callback(req: web::Json<OAuthCallbackRequest>) -> impl Res
 
 #[get("/oauth/github")]
 async fn github_oauth_init() -> impl Responder {
-    // TODO: Implement GitHub OAuth initialization
+    // TODO(#5): Implement GitHub OAuth initialization
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "GitHub OAuth init endpoint not yet implemented"
     }))
@@ -33,7 +33,7 @@ async fn github_oauth_init() -> impl Responder {
 
 #[post("/oauth/github/callback")]
 async fn github_oauth_callback(req: web::Json<OAuthCallbackRequest>) -> impl Responder {
-    // TODO: Implement GitHub OAuth callback
+    // TODO(#5): Implement GitHub OAuth callback
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "GitHub OAuth callback endpoint not yet implemented"
     }))

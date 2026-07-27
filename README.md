@@ -2,12 +2,12 @@
 
 **Open Source, Self-Hosted Platform for LLM DevOps, Cost Analytics, and Multi-Tenant Governance**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/llm-governance-dashboard)
+[![Version](https://img.shields.io/badge/version-0.x--dev-orange.svg)](https://github.com/LLM-Dev-Ops/governance-dashboard)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/llm-governance-dashboard/actions)
+[![CI](https://github.com/LLM-Dev-Ops/governance-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/LLM-Dev-Ops/governance-dashboard/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-> Production-ready, open source platform for multi-tenant LLM governance with real-time cost tracking, budget enforcement, policy management, and comprehensive analytics. Deploy on your own infrastructure with full control and data privacy.
+> **Status: pre-1.0, under active development — not production-ready.** This is an open source, self-hosted platform being built for multi-tenant LLM governance: real-time cost tracking, budget enforcement, policy management, and comprehensive analytics, deployed on your own infrastructure with full control and data privacy. The feature list below describes the target scope, not a shipped release — see [`docs/COMPLETION_ROADMAP.md`](docs/COMPLETION_ROADMAP.md) for what is built versus planned. Notably, `services/auth-service` is still largely stubbed (login, JWT validation, MFA, OAuth, and rate limiting are unimplemented), so this is **not** safe to expose to untrusted users or real tenant data today.
 
 ---
 
@@ -40,7 +40,7 @@
 
 ### 🚀 Deployment & DevOps
 - **Docker Compose** - Single command deployment for development
-- **Kubernetes** - Production-ready manifests and Helm charts
+- **Kubernetes** - Manifests and Helm charts (`k8s/`, `helm/`)
 - **Infrastructure as Code** - Terraform modules included
 - **Monitoring** - Prometheus metrics, Grafana dashboards, OpenTelemetry
 
@@ -147,8 +147,8 @@ Rust libraries for building custom integrations and services:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/llm-governance-dashboard.git
-cd llm-governance-dashboard
+git clone https://github.com/LLM-Dev-Ops/governance-dashboard.git
+cd governance-dashboard
 
 # Copy environment template and configure
 cp .env.example .env
@@ -422,7 +422,11 @@ make setup && make dev
 - **Database Init**: Automatic schema setup
 - **Documentation**: README.md + QUICKSTART.md
 
-### What's Production-Ready
+### Scope Built Out So Far
+
+> These areas have implementation in the tree. Built out is not the same as
+> ready to ship — see the Status section below and
+> [`docs/COMPLETION_ROADMAP.md`](docs/COMPLETION_ROADMAP.md) for gate state.
 
 ✅ Multi-tenant organization system
 ✅ Real-time cost tracking with TimescaleDB
@@ -489,7 +493,7 @@ We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidel
 
 ```bash
 # Fork the repository
-git clone https://github.com/yourusername/llm-governance-dashboard.git
+git clone https://github.com/LLM-Dev-Ops/governance-dashboard.git
 
 # Create a feature branch
 git checkout -b feature/amazing-feature
@@ -537,8 +541,8 @@ This is a truly open source project. Use it, modify it, sell it - with clear leg
 ## 💬 Support & Community
 
 ### Community Support (Free)
-- [GitHub Issues](https://github.com/yourusername/llm-governance-dashboard/issues) - Bug reports and feature requests
-- [GitHub Discussions](https://github.com/yourusername/llm-governance-dashboard/discussions) - Questions and community support
+- [GitHub Issues](https://github.com/LLM-Dev-Ops/governance-dashboard/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/LLM-Dev-Ops/governance-dashboard/discussions) - Questions and community support
 - [Discord](https://discord.gg/llm-governance) - Real-time chat with the community
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/llm-governance-dashboard) - Tagged questions
 
@@ -562,15 +566,26 @@ Contact: support@llmgovernance.com
 
 ## 🏆 Status
 
-**Production Ready** ✅
+**Pre-1.0, in development — not production-ready.** ⚠️
 
-- ✅ Complete feature implementation
-- ✅ Comprehensive testing (300+ tests)
-- ✅ Production-grade security
-- ✅ Full documentation (41 files)
-- ✅ Multiple deployment options
-- ✅ CI/CD pipelines
-- ✅ Enterprise support ready
+Audited 2026-07-27 against the working tree (ADR-0001). Known blockers:
+
+- ⚠️ **Build is broken** — `cargo check --workspace` exits 101; the `llm-infra-core`
+  dependency does not exist in `LLM-Dev-Ops/infra` ([#7](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/7))
+- ⚠️ **Authentication is largely stubbed** — login/register/refresh/logout return
+  `501` ([#1](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/1)); `AuthMiddleware` performs no JWT validation and fails open
+  ([#2](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/2)); rate limiting is a no-op ([#3](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/3)); MFA ([#4](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/4)) and
+  OAuth2 ([#5](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/5)) are `todo!()` panics
+- ⚠️ **Test coverage is unverified** — all 29 `auth-service` tests are empty bodies
+  that pass vacuously ([#6](https://github.com/LLM-Dev-Ops/governance-dashboard/issues/6))
+- ✅ Multiple deployment options (Docker Compose, `k8s/`, `helm/`, `terraform/`)
+- ✅ CI/CD workflows defined in `.github/workflows/`
+
+Every phase gate in [`docs/COMPLETION_ROADMAP.md`](docs/COMPLETION_ROADMAP.md) — MVP, Beta, and Production — is
+currently unchecked. Readiness language returns to this README when the Production
+Gate is genuinely passed, not before.
+
+**Do not deploy this against untrusted users or real tenant data.**
 
 ---
 
@@ -630,4 +645,4 @@ We believe LLM governance and cost management should be accessible to everyone:
 
 **Made with ❤️ by the Open Source Community**
 
-[GitHub](https://github.com/yourusername/llm-governance-dashboard) • [Documentation](docs/) • [Discussions](https://github.com/yourusername/llm-governance-dashboard/discussions) • [Issues](https://github.com/yourusername/llm-governance-dashboard/issues)
+[GitHub](https://github.com/LLM-Dev-Ops/governance-dashboard) • [Documentation](docs/) • [Discussions](https://github.com/LLM-Dev-Ops/governance-dashboard/discussions) • [Issues](https://github.com/LLM-Dev-Ops/governance-dashboard/issues)
