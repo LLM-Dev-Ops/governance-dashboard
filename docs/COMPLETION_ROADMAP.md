@@ -1257,17 +1257,22 @@ The v1.0 release delivers a production-ready, enterprise-grade LLM governance pl
 
 ### Phase Gate Criteria
 
+> **Gate audit — 2026-07-27 (ADR-0001).** Every MVP gate box below was walked
+> against the working tree. **None could be honestly checked**, so none were.
+> The evidence for each is recorded inline. Re-audit and update the evidence
+> notes whenever a box changes state; do not check a box without one.
+
 **MVP Gate (End of Week 10):**
-- [ ] All core features functional
-- [ ] 90%+ test coverage
-- [ ] Zero critical bugs
-- [ ] <10 high-priority bugs
-- [ ] Security audit passed
-- [ ] 5+ pilot users onboarded successfully
-- [ ] Documentation complete
-- [ ] Staging environment stable for 7 days
-- [ ] Performance benchmarks met
-- [ ] Go/No-Go decision from leadership
+- [ ] All core features functional — `services/auth-service` login, register, refresh, and logout return `501 Not Implemented` (#1); MFA and OAuth service methods are `todo!()` panics (#4, #5)
+- [ ] 90%+ test coverage — all 29 `services/auth-service` tests are empty bodies that pass vacuously (#6); coverage cannot be measured while the build fails (#7)
+- [ ] Zero critical bugs — `AuthMiddleware` fails open, performing no JWT validation (#2); `RateLimitMiddleware` is a no-op (#3)
+- [ ] <10 high-priority bugs — not assessable; no triaged bug list exists as of this audit
+- [ ] Security audit passed — no audit record in the repository
+- [ ] 5+ pilot users onboarded successfully — no evidence in the repository
+- [ ] Documentation complete — no evidence; the README asserted production readiness that this roadmap contradicted (corrected by ADR-0001)
+- [ ] Staging environment stable for 7 days — no evidence in the repository
+- [ ] Performance benchmarks met — no recorded benchmark results; `cargo check --workspace` exits 101 on unresolved `llm-infra-core` (#7), so nothing builds to benchmark
+- [ ] Go/No-Go decision from leadership — not recorded
 
 **Beta Gate (End of Week 18):**
 - [ ] All beta features functional
@@ -1282,6 +1287,12 @@ The v1.0 release delivers a production-ready, enterprise-grade LLM governance pl
 - [ ] Go/No-Go decision from leadership
 
 **Production Gate (End of Week 24):**
+
+> **Per ADR-0001:** "production-ready", "v1.0", and equivalent readiness language
+> must not appear in `README.md`, `VERSION`, or release material while *any* box
+> in this gate is unchecked. The claim returns when the gate is genuinely passed,
+> not before.
+
 - [ ] All v1.0 features complete
 - [ ] 95%+ test coverage maintained
 - [ ] Zero critical or high bugs

@@ -20,7 +20,7 @@ pub struct VerifyMfaRequest {
 
 #[post("/mfa/enable")]
 async fn enable_mfa(req: web::Json<EnableMfaRequest>) -> impl Responder {
-    // TODO: Implement MFA enablement
+    // TODO(#4): Implement MFA enablement
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "MFA enable endpoint not yet implemented"
     }))
@@ -28,7 +28,7 @@ async fn enable_mfa(req: web::Json<EnableMfaRequest>) -> impl Responder {
 
 #[post("/mfa/verify")]
 async fn verify_mfa(req: web::Json<VerifyMfaRequest>) -> impl Responder {
-    // TODO: Implement MFA verification
+    // TODO(#4): Implement MFA verification
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "MFA verify endpoint not yet implemented"
     }))
@@ -36,7 +36,7 @@ async fn verify_mfa(req: web::Json<VerifyMfaRequest>) -> impl Responder {
 
 #[post("/mfa/disable")]
 async fn disable_mfa() -> impl Responder {
-    // TODO: Implement MFA disablement
+    // TODO(#4): Implement MFA disablement
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "MFA disable endpoint not yet implemented"
     }))

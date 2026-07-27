@@ -6,22 +6,22 @@ impl OAuthService {
     }
 
     pub fn get_google_auth_url(&self, state: &str) -> Result<String, anyhow::Error> {
-        // TODO: Implement Google OAuth URL generation
+        // TODO(#5): Implement Google OAuth URL generation
         todo!("Implement Google OAuth URL generation")
     }
 
     pub fn get_github_auth_url(&self, state: &str) -> Result<String, anyhow::Error> {
-        // TODO: Implement GitHub OAuth URL generation
+        // TODO(#5): Implement GitHub OAuth URL generation
         todo!("Implement GitHub OAuth URL generation")
     }
 
     pub async fn exchange_google_code(&self, code: &str) -> Result<String, anyhow::Error> {
-        // TODO: Implement Google OAuth code exchange
+        // TODO(#5): Implement Google OAuth code exchange
         todo!("Implement Google OAuth code exchange")
     }
 
     pub async fn exchange_github_code(&self, code: &str) -> Result<String, anyhow::Error> {
-        // TODO: Implement GitHub OAuth code exchange
+        // TODO(#5): Implement GitHub OAuth code exchange
         todo!("Implement GitHub OAuth code exchange")
     }
 }

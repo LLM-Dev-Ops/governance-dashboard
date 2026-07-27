@@ -41,7 +41,7 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        // TODO: Implement rate limiting
+        // TODO(#3): Implement rate limiting
         let fut = self.service.call(req);
         Box::pin(async move {
             let res = fut.await?;
