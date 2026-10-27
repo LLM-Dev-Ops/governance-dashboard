@@ -69,7 +69,7 @@ use llm_governance_common::adapters::UpstreamConfig;
 // ============================================================================
 
 /// Request to assess change impact
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChangeImpactRequest {
     /// Organization ID
     pub organization_id: String,
@@ -90,7 +90,7 @@ pub struct ChangeImpactRequest {
 fn default_true() -> bool { true }
 
 /// Change request input from API
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChangeRequestInput {
     pub change_id: String,
     pub change_type: String,
@@ -105,7 +105,7 @@ pub struct ChangeRequestInput {
 }
 
 /// Scope input from API
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ChangeImpactScopeInput {
     pub teams: Option<Vec<String>>,
     pub users: Option<Vec<String>>,
@@ -117,7 +117,7 @@ pub struct ChangeImpactScopeInput {
 }
 
 /// Date range input
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct DateRangeInput {
     pub start: String,
     pub end: String,
@@ -280,12 +280,20 @@ pub struct ListAssessmentsQuery {
 /// NOTE: This endpoint does NOT enforce policies, block changes, or execute changes.
 /// It provides read-only analysis for governance visibility.
 #[post("/governance/change-impact")]
-#[instrument(skip(pool, http_req), fields(organization_id, change_id))]
 pub async fn assess_change_impact(
     pool: web::Data<PgPool>,
     req: web::Json<ChangeImpactRequest>,
     http_req: actix_web::HttpRequest,
 ) -> Result<impl Responder> {
+    assess_change_impact_impl(pool, req, http_req).await
+}
+
+#[instrument(skip(pool, http_req), fields(organization_id, change_id))]
+async fn assess_change_impact_impl(
+    pool: web::Data<PgPool>,
+    req: web::Json<ChangeImpactRequest>,
+    http_req: actix_web::HttpRequest,
+) -> Result<HttpResponse> {
     let span = span!(Level::INFO, "change_impact_assessment",
         organization_id = %req.organization_id,
         change_id = %req.change_request.change_id
@@ -555,7 +563,7 @@ pub async fn simulate_change_impact(
     );
 
     // Call the same handler - the difference is semantic and in metadata
-    assess_change_impact(pool, req, http_req).await
+    assess_change_impact_impl(pool, req, http_req).await
 }
 
 /// List previous change impact assessments

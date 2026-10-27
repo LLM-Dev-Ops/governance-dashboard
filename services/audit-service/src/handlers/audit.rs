@@ -98,7 +98,6 @@ pub async fn query_audit_logs(
         "SELECT id, timestamp, user_id, action, resource_type, resource_id, ip_address, details, checksum FROM audit_logs WHERE 1=1"
     );
 
-    let mut bindings = Vec::new();
     let mut bind_index = 1;
 
     if let Some(user_id) = query.user_id {

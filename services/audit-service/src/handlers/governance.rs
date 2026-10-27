@@ -58,7 +58,7 @@ const AGENT_VERSION: &str = "1.0.0";
 // ============================================================================
 
 /// Request to generate governance audit
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct GovernanceAuditRequest {
     /// Organization ID to audit
     pub organization_id: String,
@@ -78,7 +78,7 @@ pub struct GovernanceAuditRequest {
 }
 
 /// Scope constraints for audit
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AuditScopeRequest {
     pub teams: Option<Vec<String>>,
     pub users: Option<Vec<String>>,
