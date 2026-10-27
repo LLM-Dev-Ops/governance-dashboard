@@ -1,7 +1,6 @@
 use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use llm_governance_common::{ApiResponse, AppError, Result};
-use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -226,7 +225,7 @@ pub async fn create_budget(
     req.validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
-    let current_user_id = extract_user_id(&http_req)?;
+    extract_user_id(&http_req)?;
 
     // Validate that either team_id or user_id is provided
     if (req.team_id.is_some() && req.user_id.is_some())
