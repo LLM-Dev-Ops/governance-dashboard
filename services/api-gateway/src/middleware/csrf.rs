@@ -29,8 +29,7 @@ impl CsrfProtection {
         hasher.update(data.as_bytes());
         let hash = hasher.finalize();
 
-        let token = format!("{}:{}", timestamp, general_purpose::STANDARD.encode(hash));
-        token
+        format!("{}:{}", timestamp, general_purpose::STANDARD.encode(hash))
     }
 
     /// Validate a CSRF token
@@ -47,7 +46,7 @@ impl CsrfProtection {
 
         // Token expires after 24 hours
         let now = chrono::Utc::now().timestamp();
-        if now - timestamp > 86400 {
+        if timestamp > now || now - timestamp > 86400 {
             return false;
         }
 
@@ -66,9 +65,9 @@ impl<S, B> Transform<S, ServiceRequest> for CsrfProtection
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = CsrfMiddleware<S>;
@@ -168,6 +167,23 @@ mod tests {
     fn test_invalid_token() {
         let csrf = CsrfProtection::new("test_secret".to_string());
         assert!(!csrf.validate_token("invalid_token", "session"));
+    }
+
+    #[test]
+    fn test_future_token_is_rejected() {
+        let csrf = CsrfProtection::new("test_secret".to_string());
+        let session_id = "test_session";
+        let timestamp = chrono::Utc::now().timestamp() + 3600;
+        let data = format!("{}:{}:{}", session_id, timestamp, csrf.secret);
+        let mut hasher = Sha256::new();
+        hasher.update(data.as_bytes());
+        let token = format!(
+            "{}:{}",
+            timestamp,
+            general_purpose::STANDARD.encode(hasher.finalize())
+        );
+
+        assert!(!csrf.validate_token(&token, session_id));
     }
 
     #[test]
