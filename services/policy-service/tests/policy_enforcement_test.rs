@@ -45,10 +45,7 @@ fn cost_and_rate_limits_block_excessive_requests() {
     )
     .expect("rate evaluation succeeds");
     assert!(!rate.passed);
-    assert_eq!(
-        rate.violations[0].rule_violated,
-        "max_requests_per_minute"
-    );
+    assert_eq!(rate.violations[0].rule_violated, "max_requests_per_minute");
 }
 
 #[test]

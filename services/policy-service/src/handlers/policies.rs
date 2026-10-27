@@ -1,10 +1,10 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use chrono::{DateTime, Utc};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use chrono::{DateTime, Utc};
+use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreatePolicyRequest {
@@ -97,12 +97,14 @@ pub async fn list_policies(
         .fetch_one(pool.get_ref())
         .await?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "policies": policies,
-        "total": total.0,
-        "limit": limit,
-        "offset": offset
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "policies": policies,
+            "total": total.0,
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
 }
 
 #[get("/policies/{id}")]
@@ -143,7 +145,9 @@ pub async fn create_policy(
 
     // Validate enforcement level
     if !is_valid_enforcement_level(&req.enforcement_level) {
-        return Err(AppError::Validation("Invalid enforcement level".to_string()));
+        return Err(AppError::Validation(
+            "Invalid enforcement level".to_string(),
+        ));
     }
 
     let policy = sqlx::query_as::<_, PolicyResponse>(
@@ -184,13 +188,11 @@ pub async fn update_policy(
     let _current_user_id = extract_user_id(&http_req)?;
 
     // Get current policy version
-    let current: (i32,) = sqlx::query_as(
-        "SELECT version FROM policies WHERE id = $1"
-    )
-    .bind(policy_id.as_ref())
-    .fetch_optional(pool.get_ref())
-    .await?
-    .ok_or_else(|| AppError::NotFound("Policy not found".to_string()))?;
+    let current: (i32,) = sqlx::query_as("SELECT version FROM policies WHERE id = $1")
+        .bind(policy_id.as_ref())
+        .fetch_optional(pool.get_ref())
+        .await?
+        .ok_or_else(|| AppError::NotFound("Policy not found".to_string()))?;
 
     // Build update query dynamically
     let mut updates = Vec::new();
@@ -270,7 +272,7 @@ pub async fn delete_policy(
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Policy deleted successfully"})
+        serde_json::json!({"message": "Policy deleted successfully"}),
     )))
 }
 
@@ -307,9 +309,12 @@ pub async fn assign_policy(
     let current_user_id = extract_user_id(&http_req)?;
 
     // Validate that either team_id or user_id is provided, but not both
-    if (req.team_id.is_some() && req.user_id.is_some()) ||
-       (req.team_id.is_none() && req.user_id.is_none()) {
-        return Err(AppError::Validation("Provide either team_id or user_id, not both".to_string()));
+    if (req.team_id.is_some() && req.user_id.is_some())
+        || (req.team_id.is_none() && req.user_id.is_none())
+    {
+        return Err(AppError::Validation(
+            "Provide either team_id or user_id, not both".to_string(),
+        ));
     }
 
     sqlx::query(
@@ -326,7 +331,7 @@ pub async fn assign_policy(
     .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Policy assigned successfully"})
+        serde_json::json!({"message": "Policy assigned successfully"}),
     )))
 }
 
@@ -406,9 +411,13 @@ pub fn evaluate_policy_rules(
     // Policy evaluation logic based on policy type
     match policy.policy_type.as_str() {
         "cost" => evaluate_cost_policy(&policy.rules, context, &mut violations, &mut warnings)?,
-        "rate_limit" => evaluate_rate_limit_policy(&policy.rules, context, &mut violations, &mut warnings)?,
+        "rate_limit" => {
+            evaluate_rate_limit_policy(&policy.rules, context, &mut violations, &mut warnings)?
+        }
         "usage" => evaluate_usage_policy(&policy.rules, context, &mut violations, &mut warnings)?,
-        "content_filter" => evaluate_content_filter_policy(&policy.rules, context, &mut violations, &mut warnings)?,
+        "content_filter" => {
+            evaluate_content_filter_policy(&policy.rules, context, &mut violations, &mut warnings)?
+        }
         _ => {}
     }
 
@@ -448,15 +457,22 @@ fn evaluate_rate_limit_policy(
     violations: &mut Vec<PolicyViolation>,
     _warnings: &mut Vec<String>,
 ) -> Result<()> {
-    if let Some(max_requests) = rules.get("max_requests_per_minute").and_then(|v| v.as_i64()) {
-        if let Some(current_requests) = context.get("requests_per_minute").and_then(|v| v.as_i64()) {
+    if let Some(max_requests) = rules
+        .get("max_requests_per_minute")
+        .and_then(|v| v.as_i64())
+    {
+        if let Some(current_requests) = context.get("requests_per_minute").and_then(|v| v.as_i64())
+        {
             if current_requests > max_requests {
                 violations.push(PolicyViolation {
                     policy_id: Uuid::nil(),
                     policy_name: "Rate Limit Policy".to_string(),
                     rule_violated: "max_requests_per_minute".to_string(),
                     severity: "high".to_string(),
-                    message: format!("Request count {} exceeds limit {}", current_requests, max_requests),
+                    message: format!(
+                        "Request count {} exceeds limit {}",
+                        current_requests, max_requests
+                    ),
                 });
             }
         }
