@@ -28,6 +28,8 @@ async fn main() -> std::io::Result<()> {
     let redis_client = redis::Client::open(config.redis_url.clone())
         .expect("Failed to create Redis client");
 
+    let bind_address = (config.host.clone(), config.port);
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
@@ -36,7 +38,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(tracing_actix_web::TracingLogger::default())
             .configure(handlers::configure)
     })
-    .bind((config.host.as_str(), config.port))?
+    .bind(bind_address)?
     .run()
     .await
 }
