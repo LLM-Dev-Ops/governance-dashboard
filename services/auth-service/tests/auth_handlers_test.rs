@@ -1,4 +1,4 @@
-use actix_web::{test, web, App};
+use actix_web::{test, App};
 use serde_json::json;
 
 #[cfg(test)]
@@ -13,7 +13,7 @@ mod auth_handler_tests {
         // Test invalid email
         let req = test::TestRequest::post()
             .uri("/auth/login")
-            .set_json(&json!({
+            .set_json(json!({
                 "email": "invalid-email",
                 "password": "password123"
             }))
@@ -25,7 +25,7 @@ mod auth_handler_tests {
         // Test short password
         let req = test::TestRequest::post()
             .uri("/auth/login")
-            .set_json(&json!({
+            .set_json(json!({
                 "email": "test@example.com",
                 "password": "short"
             }))
@@ -43,7 +43,7 @@ mod auth_handler_tests {
         // Test valid registration request format
         let req = test::TestRequest::post()
             .uri("/auth/register")
-            .set_json(&json!({
+            .set_json(json!({
                 "email": "newuser@example.com",
                 "password": "securepassword123",
                 "name": "Test User"

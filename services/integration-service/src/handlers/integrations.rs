@@ -421,9 +421,9 @@ async fn proxy_to_bedrock(_client: &Client, _req: &ProxyRequest) -> Result<Proxy
 // Helper functions
 
 async fn check_policies(
-    pool: &PgPool,
-    user_id: Option<Uuid>,
-    team_id: Option<Uuid>,
+    _pool: &PgPool,
+    _user_id: Option<Uuid>,
+    _team_id: Option<Uuid>,
     req: &ProxyRequest,
 ) -> Result<()> {
     // Get active policies for user/team

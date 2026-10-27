@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use sha2::{Digest, Sha256};
+use sha2::Digest;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {

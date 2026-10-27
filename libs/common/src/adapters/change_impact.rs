@@ -26,18 +26,17 @@ use super::cost_ops::CostOpsConsumer;
 use super::observatory::{
     AgentTelemetryEvent, EmitSpanRequest, ObservatoryConsumer, SpanEvent, SpanStatus,
 };
-use super::policy_engine::{ComplianceStatus, PolicyEngineConsumer, PolicyEvaluationResult};
+use super::policy_engine::PolicyEngineConsumer;
 use super::registry::RegistryConsumer;
 use super::ruvector::{
-    create_decision_event, default_confidence, execution_ref_from_request, ConfidenceBand,
+    create_decision_event, execution_ref_from_request, ConfidenceBand,
     ConfidenceFactor, ConfidenceImpact, ConstraintApplication, ConstraintScope, ConstraintType,
     DataReference, DataReferenceType, DateRange, DecisionConfidence, DecisionEvent,
-    DecisionOutputs, ExecutionReference, FindingCategory, GovernanceDecisionType,
-    GovernanceFinding, GovernanceMetrics, GovernanceSeverity, InvocationSource,
-    PersistDecisionResponse, RuVectorConsumer, TrendDirection,
+    DecisionOutputs, FindingCategory, GovernanceDecisionType,
+    GovernanceFinding, GovernanceMetrics, GovernanceSeverity, InvocationSource, RuVectorConsumer, TrendDirection,
 };
 use super::{EcosystemConsumer, UpstreamConfig};
-use crate::error::{AppError, Result};
+use crate::error::Result;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -581,7 +580,7 @@ impl ChangeImpactAgent {
         let start_time = std::time::Instant::now();
 
         // Generate inputs hash for reproducibility
-        let inputs_hash = self.hash_inputs(&input);
+        let _inputs_hash = self.hash_inputs(&input);
 
         // Perform impact analysis
         let assessment = self.analyze_impact(&input).await?;
@@ -617,7 +616,7 @@ impl ChangeImpactAgent {
         );
 
         // Persist to ruvector-service (ONLY authorized persistence mechanism)
-        let persist_response = self
+        let _persist_response = self
             .ruvector
             .persist_decision_event(decision_event.clone())
             .await?;
@@ -802,7 +801,7 @@ impl ChangeImpactAgent {
         if input
             .scope
             .as_ref()
-            .map_or(false, |s| s.include_cost_impact.unwrap_or(false))
+            .is_some_and(|s| s.include_cost_impact.unwrap_or(false))
         {
             if let Some(ref cost_ops) = self.cost_ops {
                 cost_implications = self.analyze_cost_impact(cost_ops, input).await?;
@@ -813,7 +812,7 @@ impl ChangeImpactAgent {
         if input
             .scope
             .as_ref()
-            .map_or(false, |s| s.include_compliance_impact.unwrap_or(false))
+            .is_some_and(|s| s.include_compliance_impact.unwrap_or(false))
         {
             let compliance_impact = self.analyze_compliance_impact(input).await?;
             compliance_implications.extend(compliance_impact);
@@ -839,7 +838,7 @@ impl ChangeImpactAgent {
 
         // Build summary
         let summary = self.build_summary(
-            &change,
+            change,
             &impact_level,
             &risk_classification,
             impacts.len(),
@@ -883,7 +882,7 @@ impl ChangeImpactAgent {
         let mut risks = Vec::new();
 
         // Get current compliance status
-        let compliance_status = policy_engine
+        let _compliance_status = policy_engine
             .get_compliance_status(&input.organization_id)
             .await
             .ok();
@@ -896,7 +895,7 @@ impl ChangeImpactAgent {
                     level: ImpactLevel::Moderate,
                     description: format!(
                         "Direct modification to {} may affect enforcement behavior",
-                        input.change_request.subject_type.to_string()
+                        input.change_request.subject_type
                     ),
                     affected_entities: vec![input.change_request.subject_id.clone()],
                     metrics: None,
@@ -1206,7 +1205,7 @@ impl ChangeImpactAgent {
         &self,
         risk_classification: &RiskClassification,
         risks: &[RiskIndicator],
-        policy_implications: &[PolicyImplication],
+        _policy_implications: &[PolicyImplication],
     ) -> Vec<ImpactRecommendation> {
         let mut recommendations = Vec::new();
 
@@ -1381,7 +1380,7 @@ impl ChangeImpactAgent {
             && input
                 .scope
                 .as_ref()
-                .map_or(false, |s| s.include_cost_impact.unwrap_or(false))
+                .is_some_and(|s| s.include_cost_impact.unwrap_or(false))
         {
             completeness += 0.15;
         }

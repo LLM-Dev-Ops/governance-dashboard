@@ -1,4 +1,3 @@
-use actix_web::{test, web, App};
 use sqlx::PgPool;
 
 #[cfg(test)]

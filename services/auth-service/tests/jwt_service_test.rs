@@ -1,4 +1,3 @@
-use chrono::{Duration, Utc};
 use uuid::Uuid;
 
 #[cfg(test)]
@@ -11,8 +10,8 @@ mod jwt_service_tests {
     fn test_jwt_token_generation() {
         // This test will be implemented once JWT service is complete
         // For now, we're creating the test structure
-        let user_id = Uuid::new_v4();
-        let email = "test@example.com";
+        let _user_id = Uuid::new_v4();
+        let _email = "test@example.com";
 
         // TODO(#6): Implement JWT generation test
         // let token = JwtService::generate_token(user_id, email, TEST_SECRET);

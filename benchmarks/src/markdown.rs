@@ -26,7 +26,7 @@ pub fn generate_report(results: &[BenchmarkResult]) -> String {
         ));
     }
 
-    report.push_str("\n");
+    report.push('\n');
 
     // Detailed results
     report.push_str("## Detailed Results\n\n");
