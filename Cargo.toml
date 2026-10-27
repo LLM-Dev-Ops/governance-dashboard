@@ -36,6 +36,7 @@ actix-rt = "2.10"
 
 # Async Runtime
 tokio = { version = "1.40", features = ["full"] }
+futures = "0.3"
 
 # Database
 sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json"] }

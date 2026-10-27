@@ -502,6 +502,7 @@ dependencies = [
  "dotenv",
  "envy",
  "fake",
+ "futures",
  "jsonwebtoken",
  "llm-governance-common",
  "llm-governance-database",
