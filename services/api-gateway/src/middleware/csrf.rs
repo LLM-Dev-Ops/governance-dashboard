@@ -20,18 +20,6 @@ impl CsrfProtection {
         Self { secret }
     }
 
-    /// Generate a CSRF token for a session
-    pub fn generate_token(&self, session_id: &str) -> String {
-        let timestamp = chrono::Utc::now().timestamp();
-        let data = format!("{}:{}:{}", session_id, timestamp, self.secret);
-
-        let mut hasher = Sha256::new();
-        hasher.update(data.as_bytes());
-        let hash = hasher.finalize();
-
-        format!("{}:{}", timestamp, general_purpose::STANDARD.encode(hash))
-    }
-
     /// Validate a CSRF token
     pub fn validate_token(&self, token: &str, session_id: &str) -> bool {
         let parts: Vec<&str> = token.split(':').collect();

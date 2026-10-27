@@ -1,11 +1,9 @@
 use serde::Deserialize;
-use sha2::Digest;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     pub host: String,
     pub port: u16,
-    pub database_url: String,
     pub redis_url: String,
     #[serde(default = "default_csrf_secret")]
     pub csrf_secret: String,
@@ -29,7 +27,6 @@ impl Default for Config {
         Self {
             host: "0.0.0.0".to_string(),
             port: 8080,
-            database_url: String::new(),
             redis_url: "redis://127.0.0.1:6379".to_string(),
             csrf_secret: default_csrf_secret(),
         }
