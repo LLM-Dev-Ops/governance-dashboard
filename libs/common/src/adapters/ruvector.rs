@@ -536,6 +536,10 @@ impl EcosystemConsumer for RuVectorConsumer {
 // ============================================================================
 
 /// Create a new DecisionEvent with required fields
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the public event factory mirrors the immutable DecisionEvent contract"
+)]
 pub fn create_decision_event(
     agent_id: &str,
     agent_version: &str,

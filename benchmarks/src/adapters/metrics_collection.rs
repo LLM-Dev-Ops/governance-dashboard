@@ -54,7 +54,7 @@ impl BenchTarget for MetricsCollectionBench {
 
 /// Simulate ingesting a metric
 fn ingest_metric(provider: &str, iteration: usize) {
-    let _metric = Metric {
+    let metric = Metric {
         provider: provider.to_string(),
         model: format!("{}-model", provider),
         tokens_in: 1000 + (iteration % 100) as i32,
@@ -63,18 +63,36 @@ fn ingest_metric(provider: &str, iteration: usize) {
         cost: 0.01 + (iteration as f64 * 0.001),
         timestamp: chrono::Utc::now(),
     };
+    std::hint::black_box((
+        &metric.provider,
+        &metric.model,
+        metric.tokens_in,
+        metric.tokens_out,
+        metric.latency_ms,
+        metric.cost,
+        metric.timestamp,
+    ));
 }
 
 /// Simulate aggregating metrics
 fn aggregate_metrics(provider: &str) -> AggregatedMetrics {
-    AggregatedMetrics {
+    let metrics = AggregatedMetrics {
         provider: provider.to_string(),
         total_requests: 100,
         total_tokens_in: 100_000,
         total_tokens_out: 50_000,
         avg_latency_ms: 150.0,
         total_cost: 5.0,
-    }
+    };
+    std::hint::black_box((
+        &metrics.provider,
+        metrics.total_requests,
+        metrics.total_tokens_in,
+        metrics.total_tokens_out,
+        metrics.avg_latency_ms,
+        metrics.total_cost,
+    ));
+    metrics
 }
 
 /// Simulated metric structure

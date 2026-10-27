@@ -1419,7 +1419,11 @@ impl ChangeImpactAgent {
             factors: vec![
                 ConfidenceFactor {
                     factor: "upstream_data_availability".to_string(),
-                    impact: if self.policy_engine.is_some() {
+                    impact: if self.policy_engine.is_some()
+                        || self.registry.is_some()
+                        || self.cost_ops.is_some()
+                        || self.observatory.is_some()
+                    {
                         ConfidenceImpact::Positive
                     } else {
                         ConfidenceImpact::Negative
@@ -1443,43 +1447,38 @@ impl ChangeImpactAgent {
 
     /// Build constraints applied during analysis
     fn build_constraints(&self, input: &ChangeImpactInput) -> Vec<ConstraintApplication> {
-        let mut constraints = Vec::new();
-
-        // Organization boundary constraint
-        constraints.push(ConstraintApplication {
-            constraint_id: "org-boundary".to_string(),
-            constraint_name: "Organization Boundary".to_string(),
-            constraint_type: ConstraintType::OrganizationalBoundary,
-            scope: ConstraintScope {
-                organizations: vec![input.organization_id.clone()],
-                teams: input
-                    .scope
-                    .as_ref()
-                    .and_then(|s| s.teams.clone())
-                    .unwrap_or_default(),
-                resource_types: vec![],
-                time_range: input.historical_range.clone(),
+        vec![
+            ConstraintApplication {
+                constraint_id: "org-boundary".to_string(),
+                constraint_name: "Organization Boundary".to_string(),
+                constraint_type: ConstraintType::OrganizationalBoundary,
+                scope: ConstraintScope {
+                    organizations: vec![input.organization_id.clone()],
+                    teams: input
+                        .scope
+                        .as_ref()
+                        .and_then(|scope| scope.teams.clone())
+                        .unwrap_or_default(),
+                    resource_types: vec![],
+                    time_range: input.historical_range.clone(),
+                },
+                satisfied: true,
+                details: "Analysis scoped to organization".to_string(),
             },
-            satisfied: true,
-            details: "Analysis scoped to organization".to_string(),
-        });
-
-        // Data retention constraint
-        constraints.push(ConstraintApplication {
-            constraint_id: "data-retention".to_string(),
-            constraint_name: "Data Retention Policy".to_string(),
-            constraint_type: ConstraintType::DataRetention,
-            scope: ConstraintScope {
-                organizations: vec![input.organization_id.clone()],
-                teams: vec![],
-                resource_types: vec![],
-                time_range: None,
+            ConstraintApplication {
+                constraint_id: "data-retention".to_string(),
+                constraint_name: "Data Retention Policy".to_string(),
+                constraint_type: ConstraintType::DataRetention,
+                scope: ConstraintScope {
+                    organizations: vec![input.organization_id.clone()],
+                    teams: vec![],
+                    resource_types: vec![],
+                    time_range: None,
+                },
+                satisfied: true,
+                details: "DecisionEvent persisted with compliant TTL".to_string(),
             },
-            satisfied: true,
-            details: "DecisionEvent persisted with compliant TTL".to_string(),
-        });
-
-        constraints
+        ]
     }
 
     /// Build decision outputs for the DecisionEvent

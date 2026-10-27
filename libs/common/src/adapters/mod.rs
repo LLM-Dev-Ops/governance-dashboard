@@ -30,6 +30,10 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 /// Common trait for all ecosystem consumer adapters
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait adds must_use to a Future whose Result is already must_use"
+)]
 #[async_trait]
 pub trait EcosystemConsumer: Send + Sync {
     /// Returns the name of the upstream service

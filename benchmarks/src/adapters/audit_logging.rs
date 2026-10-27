@@ -58,12 +58,18 @@ impl BenchTarget for AuditLoggingBench {
 /// Simulate creating an audit log
 fn create_audit_log(action: &str) {
     // Simulate log creation with minimal overhead
-    let _log = AuditLog {
+    let log = AuditLog {
         action: action.to_string(),
         resource_type: "policy".to_string(),
         resource_id: "12345".to_string(),
         timestamp: chrono::Utc::now(),
     };
+    std::hint::black_box((
+        &log.action,
+        &log.resource_type,
+        &log.resource_id,
+        log.timestamp,
+    ));
 }
 
 /// Simulate calculating a checksum for audit log integrity
