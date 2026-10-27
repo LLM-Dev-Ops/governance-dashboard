@@ -30,7 +30,10 @@ fn rate_limit_policy_rejects_excess_requests() {
     .unwrap();
 
     assert!(!result.passed);
-    assert_eq!(result.violations[0].rule_violated, "max_requests_per_minute");
+    assert_eq!(
+        result.violations[0].rule_violated,
+        "max_requests_per_minute"
+    );
 }
 
 #[test]
