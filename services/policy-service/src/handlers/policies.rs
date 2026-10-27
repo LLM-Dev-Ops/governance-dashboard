@@ -385,18 +385,18 @@ pub struct ViolationQuery {
     pub offset: Option<u32>,
 }
 
-fn is_valid_policy_type(policy_type: &str) -> bool {
+pub fn is_valid_policy_type(policy_type: &str) -> bool {
     matches!(
         policy_type,
         "cost" | "security" | "compliance" | "usage" | "rate_limit" | "content_filter"
     )
 }
 
-fn is_valid_enforcement_level(level: &str) -> bool {
+pub fn is_valid_enforcement_level(level: &str) -> bool {
     matches!(level, "strict" | "warning" | "monitor")
 }
 
-fn evaluate_policy_rules(
+pub fn evaluate_policy_rules(
     policy: &PolicyResponse,
     context: &serde_json::Value,
 ) -> Result<EvaluationResult> {
