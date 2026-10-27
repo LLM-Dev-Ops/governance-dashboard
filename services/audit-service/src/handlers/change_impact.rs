@@ -1143,7 +1143,7 @@ fn calculate_assessment_confidence(
     historical_context: &Option<HistoricalContext>,
     scope: Option<&ChangeImpactScopeInput>,
 ) -> DecisionConfidence {
-    let mut completeness = 0.5;
+    let mut completeness: f64 = 0.5;
 
     if !impacts.is_empty() {
         completeness += 0.15;
