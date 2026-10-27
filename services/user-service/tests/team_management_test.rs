@@ -1,6 +1,4 @@
-use user_service::handlers::organizations::{
-    CreateOrganizationRequest, CreateTeamRequest,
-};
+use user_service::handlers::organizations::{CreateOrganizationRequest, CreateTeamRequest};
 use validator::Validate;
 
 #[test]
