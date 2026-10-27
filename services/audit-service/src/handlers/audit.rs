@@ -101,44 +101,319 @@ pub async fn query_audit_logs(
     let mut bind_index = 1;
 
     if let Some(_user_id) = query.user_id {
-  ÙÜÂˆÒT‘HYH	BˆˆËˆ
-Bˆ˜š[™
-Ù×ÚY˜\×Ü™YŠ
-JBˆ™™]ÚÛÜ[Û˜[
-ÛÛ™Ù]Ü™YŠ
-JBˆ˜]ØZ]Âˆ›Ú×ÛÜ—Ù[ÙJ\\œ›ÜŽŽ“›Ý›Ý[™
-]Y]ÙÈ›Ý›Ý[™‹×ÜÝš[™Ê
-JJOÎÂ‚ˆËÈ™XØ[Ý[]HÚXÚÜÝ[Bˆ]Ø[Ý[]YØÚXÚÜÝ[HHØ[Ý[]WØÚXÚÜÝ[JˆÙË\Ù\—ÚYˆ	›ÙË˜XÝ[Û‹ˆ	›ÙËœ™\ÛÝ\˜ÙWÝ\Kˆ	›ÙËœ™\ÛÝ\˜ÙWÚYˆ	›ÙË™]Z[Ëˆ
-NÂ‚ˆ]\×Ý˜[YHØ[Ý[]YØÚXÚÜÝ[HOHÙË˜ÚXÚÜÝ[NÂ‚ˆÚÊˆ™\ÜÛœÙNŽ“ÚÊ
-KšœÛÛŠ\T™\ÜÛœÙNŽœÝXØÙ\ÜÊÙ\™WÚœÛÛŽŽšœÛÛˆJÂˆ›Ù×ÚYŽˆÙËšYˆš\×Ý˜[YŽˆ\×Ý˜[YˆœÝÜ™YØÚXÚÜÝ[HŽˆÙË˜ÚXÚÜÝ[Kˆ˜Ø[Ý[]YØÚXÚÜÝ[HŽˆØ[Ý[]YØÚXÚÜÝ[BˆJJJKˆ
-BŸB‚ˆÖÜÜÝ
-‹Ø]Y]Ù^ÜŠWBœXˆ\Þ[˜È›ˆ^ÜØ]Y]ÛÙÜÊˆÛÛˆÙXŽŽ‘]OÔÛÛ‹ˆ™\NˆÙXŽŽ’œÛÛ^Ü™\]Y\Ý‹ŠHOˆ™\Ý[[\™\ÜÛ™\ˆÂˆËÈZ[]Y\žBˆ]]]Ü[HÝš[™ÎŽ™œ›ÛJˆ”ÑSPÕY[Y\Ý[\\Ù\—ÚYXÝ[Û‹™\ÛÝ\˜ÙWÝ\K™\ÛÝ\˜ÙWÚY\ØY™\ÜË]Z[ËÚXÚÜÝ[H”“ÓH]Y]ÛÙÜÈÒT‘HOLH‚ˆ
-NÂ‚ˆYˆ™\K\Ù\—ÚYš\×ÜÛÛYJ
-HÂˆÜ[œ\ÚÜÝŠˆS‘\Ù\—ÚYH	HŠNÂˆBˆYˆ™\KœÝ\Ù]Kš\×ÜÛÛYJ
-HÂˆÜ[œ\ÚÜÝŠˆS‘[Y\Ý[\H	ˆŠNÂˆBˆYˆ™\K™[™Ù]Kš\×ÜÛÛYJ
-HÂˆÜ[œ\ÚÜÝŠˆS‘[Y\Ý[\H	ÈŠNÂˆB‚ˆÜ[œ\ÚÜÝŠˆÔ‘Tˆ–H[Y\Ý[\TÐÈSRULŠNÂ‚ˆ]]]]Y\žWØZ[\ˆHÜ[Žœ]Y\žWØ\ÎŽË]Y]ÙÔ™\ÜÛœÙOŠ	œÜ[
-NÂ‚ˆYˆ]ÛÛYJ\Ù\—ÚY
-HH™\K\Ù\—ÚYÂˆ]Y\žWØZ[\ˆH]Y\žWØZ[\‹˜š[™
-\Ù\—ÚY
-NÂˆBˆYˆ]ÛÛYJ™YˆÝ\Ù]JHH™\KœÝ\Ù]HÂˆ]Y\žWØZ[\ˆH]Y\žWØZ[\‹˜š[™
-Ý\Ù]JNÂˆBˆYˆ]ÛÛYJ™Yˆ[™Ù]JHH™\K™[™Ù]HÂˆ]Y\žWØZ[\ˆH]Y\žWØZ[\‹˜š[™
-[™Ù]JNÂˆB‚ˆ]ÙÜÈH]Y\žWØZ[\‹™™]ÚØ[
-ÛÛ™Ù]Ü™YŠ
-JK˜]ØZ]ÎÂ‚ˆX]Ú™\K™›Ü›X]˜\×ÜÝŠ
-HÂˆ˜ÜÝˆˆOˆÂˆ]ÜÝˆHÙ[™\˜]WØÜÝŠ	›ÙÜÊOÎÂˆÚÊ™\ÜÛœÙNŽ“ÚÊ
-Bˆ˜ÛÛ[Ý\J^ØÜÝˆŠBˆš[œÙ\ÚXY\Š
-ÛÛ[Q\ÜÜÚ][Ûˆ‹˜]XÚY[Èš[[˜[YOX]Y]ÛÙÜË˜ÜÝˆŠJBˆ˜›ÙJÜÝŠJBˆBˆšœÛÛˆˆOˆÚÊ™\ÜÛœÙNŽ“ÚÊ
-Bˆ˜ÛÛ[Ý\J˜\XØ][Û‹ÚœÛÛˆŠBˆš[œÙ\ÚXY\Š
-ˆÛÛ[Q\ÜÜÚ][Ûˆ‹ˆ˜]XÚY[Èš[[˜[YOX]Y]ÛÙÜËšœÛÛˆ‹ˆ
-JBˆšœÛÛŠÙÜÊJKˆÈOˆ\œŠ\\œ›ÜŽŽ•˜[Y][ÛŠˆ’[˜[Y^Ü›Ü›X]ˆ\ÙH	ØÜÝ‰ÈÜˆ	ÚœÛÛ‰È‹×ÜÝš[™Ê
-Kˆ
-JKˆBŸB‚ˆÖÙÙ]
-‹Ø]Y]Ü™\ÜËØÛÛ\X[˜ÙHŠWBœXˆ\Þ[˜È›ˆÙ[™\˜]WØÛÛ\X[˜ÙWÜ™\Ü
-ˆÛÛˆÙXŽŽ‘]OÔÛÛ‹ˆ]Y\žNˆÙXŽŽ”]Y\žOÛÛ\X[˜ÙT]Y\žO‹ŠHOˆ™\Ý[[\™\ÜÛ™\ˆÂˆ]Ý\Ù]HH]Y\žKœÝ\Ù]K˜ÛÛ™J
-K[Ü˜\ÛÜ—Ù[ÙJÂˆÚ›Û›ÎŽ•]ÎŽ››ÝÊ
-Bˆ˜ÚXÚÙYÜÝX—ÜÚYÛ™Y
-Ú›Û›ÎŽ‘\˜][ÛŽŽ™^\ÊÌ
-JBˆ[Ü˜\
+        sql.push_str(&format!(" AND user_id = ${}", bind_index));
+        bind_index += 1;
+    }
 
-Bˆ×Ü™˜ÌÌÌÎJ
-BˆJNÂ‚ˆ][™Ù]HH]Y\žBˆ™[™ÙR’“°¢Ð ¢ö²†77b§Ð §V"fâ6öæf–wW&R†6fs¢f×WBvV#£¥6W'f–6T6öæf–r’°¢6frç6W'f–6R†7&VFUöVF—EöÆör¢ç6W'f–6R‡VW'•öVF—EöÆöw2¢ç6W'f–6R†vWEöVF—EöÆör¢ç6W'f–6R‡fW&–g•öVF—EöÆör¢ç6W'f–6R†W‡÷'EöVF—EöÆöw2¢ç6W'f–6R†vVæW&FUö6ö×Æ–æ6U÷&W÷'B“°§Ð
+    if let Some(ref _action) = query.action {
+        sql.push_str(&format!(" AND action = ${}", bind_index));
+        bind_index += 1;
+    }
+
+    if let Some(ref _resource_type) = query.resource_type {
+        sql.push_str(&format!(" AND resource_type = ${}", bind_index));
+        bind_index += 1;
+    }
+
+    if let Some(ref _resource_id) = query.resource_id {
+        sql.push_str(&format!(" AND resource_id = ${}", bind_index));
+        bind_index += 1;
+    }
+
+    if let Some(ref _start_date) = query.start_date {
+        sql.push_str(&format!(" AND timestamp >= ${}", bind_index));
+        bind_index += 1;
+    }
+
+    if let Some(ref _end_date) = query.end_date {
+        sql.push_str(&format!(" AND timestamp <= ${}", bind_index));
+        bind_index += 1;
+    }
+
+    sql.push_str(&format!(
+        " ORDER BY timestamp DESC LIMIT ${} OFFSET ${}",
+        bind_index,
+        bind_index + 1
+    ));
+
+    // Execute query with dynamic bindings
+    let mut query_builder = sqlx::query_as::<_, AuditLogResponse>(&sql);
+
+    if let Some(user_id) = query.user_id {
+        query_builder = query_builder.bind(user_id);
+    }
+    if let Some(ref action) = query.action {
+        query_builder = query_builder.bind(action);
+    }
+    if let Some(ref resource_type) = query.resource_type {
+        query_builder = query_builder.bind(resource_type);
+    }
+    if let Some(ref resource_id) = query.resource_id {
+        query_builder = query_builder.bind(resource_id);
+    }
+    if let Some(ref start_date) = query.start_date {
+        query_builder = query_builder.bind(start_date);
+    }
+    if let Some(ref end_date) = query.end_date {
+        query_builder = query_builder.bind(end_date);
+    }
+
+    query_builder = query_builder.bind(limit as i64).bind(offset as i64);
+
+    let logs = query_builder.fetch_all(pool.get_ref()).await?;
+
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "logs": logs,
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
+}
+
+#[get("/audit/logs/{id}")]
+pub async fn get_audit_log(
+    pool: web::Data<PgPool>,
+    log_id: web::Path<Uuid>,
+) -> Result<impl Responder> {
+    let log = sqlx::query_as::<_, AuditLogResponse>(
+        r#"
+        SELECT id, timestamp, user_id, action, resource_type, resource_id, ip_address, details, checksum
+        FROM audit_logs
+        WHERE id = $1
+        "#,
+    )
+    .bind(log_id.as_ref())
+    .fetch_optional(pool.get_ref())
+    .await?
+    .ok_or_else(|| AppError::NotFound("Audit log not found".to_string()))?;
+
+    Ok(HttpResponse::Ok().json(ApiResponse::success(log)))
+}
+
+#[get("/audit/logs/{id}/verify")]
+pub async fn verify_audit_log(
+    pool: web::Data<PgPool>,
+    log_id: web::Path<Uuid>,
+) -> Result<impl Responder> {
+    let log = sqlx::query_as::<_, AuditLogResponse>(
+        r#"
+        SELECT id, timestamp, user_id, action, resource_type, resource_id, ip_address, details, checksum
+        FROM audit_logs
+        WHERE id = $1
+        "#,
+    )
+    .bind(log_id.as_ref())
+    .fetch_optional(pool.get_ref())
+    .await?
+    .ok_or_else(|| AppError::NotFound("Audit log not found".to_string()))?;
+
+    // Recalculate checksum
+    let calculated_checksum = calculate_checksum(
+        log.user_id,
+        &log.action,
+        &log.resource_type,
+        &log.resource_id,
+        &log.details,
+    );
+
+    let is_valid = calculated_checksum == log.checksum;
+
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "log_id": log.id,
+            "is_valid": is_valid,
+            "stored_checksum": log.checksum,
+            "calculated_checksum": calculated_checksum
+        }))),
+    )
+}
+
+#[post("/audit/export")]
+pub async fn export_audit_logs(
+    pool: web::Data<PgPool>,
+    req: web::Json<ExportRequest>,
+) -> Result<impl Responder> {
+    // Build query
+    let mut sql = String::from(
+        "SELECT id, timestamp, user_id, action, resource_type, resource_id, ip_address, details, checksum FROM audit_logs WHERE 1=1"
+    );
+
+    if req.user_id.is_some() {
+        sql.push_str(" AND user_id = $1");
+    }
+    if req.start_date.is_some() {
+        sql.push_str(" AND timestamp >= $2");
+    }
+    if req.end_date.is_some() {
+        sql.push_str(" AND timestamp <= $3");
+    }
+
+    sql.push_str(" ORDER BY timestamp DESC LIMIT 10000");
+
+    let mut query_builder = sqlx::query_as::<_, AuditLogResponse>(&sql);
+
+    if let Some(user_id) = req.user_id {
+        query_builder = query_builder.bind(user_id);
+    }
+    if let Some(ref start_date) = req.start_date {
+        query_builder = query_builder.bind(start_date);
+    }
+    if let Some(ref end_date) = req.end_date {
+        query_builder = query_builder.bind(end_date);
+    }
+
+    let logs = query_builder.fetch_all(pool.get_ref()).await?;
+
+    match req.format.as_str() {
+        "csv" => {
+            let csv = generate_csv(&logs)?;
+            Ok(HttpResponse::Ok()
+                .content_type("text/csv")
+                .insert_header(("Content-Disposition", "attachment; filename=audit_logs.csv"))
+                .body(csv))
+        }
+        "json" => Ok(HttpResponse::Ok()
+            .content_type("application/json")
+            .insert_header((
+                "Content-Disposition",
+                "attachment; filename=audit_logs.json",
+            ))
+            .json(logs)),
+        _ => Err(AppError::Validation(
+            "Invalid export format. Use 'csv' or 'json'".to_string(),
+        )),
+    }
+}
+
+#[get("/audit/reports/compliance")]
+pub async fn generate_compliance_report(
+    pool: web::Data<PgPool>,
+    query: web::Query<ComplianceQuery>,
+) -> Result<impl Responder> {
+    let start_date = query.start_date.clone().unwrap_or_else(|| {
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
+    });
+
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+    // Get total actions
+    let total_actions: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2")
+            .bind(&start_date)
+            .bind(&end_date)
+            .fetch_one(pool.get_ref())
+            .await?;
+
+    // Get unique users
+    let unique_users: (i64,) = sqlx::query_as(
+        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2",
+    )
+    .bind(&start_date)
+    .bind(&end_date)
+    .fetch_one(pool.get_ref())
+    .await?;
+
+    // Get actions by type
+    let actions_by_type = sqlx::query_as::<_, (String, i64)>(
+        "SELECT action, COUNT(*) as count FROM audit_logs WHERE timestamp BETWEEN $1 AND $2 GROUP BY action ORDER BY count DESC"
+    )
+    .bind(&start_date)
+    .bind(&end_date)
+    .fetch_all(pool.get_ref())
+    .await?;
+
+    let actions_map: serde_json::Map<String, serde_json::Value> = actions_by_type
+        .into_iter()
+        .map(|(action, count)| (action, serde_json::json!(count)))
+        .collect();
+
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "total_actions": total_actions.0,
+            "unique_users": unique_users.0,
+            "actions_by_type": actions_map
+        }))),
+    )
+}
+
+// Helper functions
+
+#[derive(Debug, Deserialize)]
+pub struct ComplianceQuery {
+    pub start_date: Option<String>,
+    pub end_date: Option<String>,
+}
+
+fn calculate_checksum(
+    user_id: Option<Uuid>,
+    action: &str,
+    resource_type: &str,
+    resource_id: &str,
+    details: &serde_json::Value,
+) -> String {
+    let mut hasher = Sha256::new();
+
+    if let Some(uid) = user_id {
+        hasher.update(uid.to_string().as_bytes());
+    }
+    hasher.update(action.as_bytes());
+    hasher.update(resource_type.as_bytes());
+    hasher.update(resource_id.as_bytes());
+    hasher.update(details.to_string().as_bytes());
+
+    format!("{:x}", hasher.finalize())
+}
+
+fn extract_user_id_optional(req: &actix_web::HttpRequest) -> Option<Uuid> {
+    req.headers()
+        .get("X-User-Id")
+        .and_then(|h| h.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok())
+}
+
+fn extract_ip_address(req: &actix_web::HttpRequest) -> Option<String> {
+    req.connection_info()
+        .realip_remote_addr()
+        .map(|s| s.to_string())
+}
+
+fn generate_csv(logs: &[AuditLogResponse]) -> Result<String> {
+    let mut csv =
+        String::from("id,timestamp,user_id,action,resource_type,resource_id,ip_address,checksum\n");
+
+    for log in logs {
+        csv.push_str(&format!(
+            "{},{},{},{},{},{},{},{}\n",
+            log.id,
+            log.timestamp,
+            log.user_id.map(|u| u.to_string()).unwrap_or_default(),
+            log.action,
+            log.resource_type,
+            log.resource_id,
+            log.ip_address.as_deref().unwrap_or(""),
+            log.checksum
+        ));
+    }
+
+    Ok(csv)
+}
+
+pub fn configure(cfg: &mut web::ServiceConfig) {
+    cfg.service(create_audit_log)
+        .service(query_audit_logs)
+        .service(get_audit_log)
+        .service(verify_audit_log)
+        .service(export_audit_logs)
+        .service(generate_compliance_report);
+}

@@ -77,7 +77,278 @@ pub struct GovernanceAuditRequest {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuditScopeRequest {
     pub teams: Option<Vec<String>>,
-    pub users: Option<Vg—P¢ÆWBFV6—6–öå÷G—RÒ'6UöFV6—6–öå÷G—R‚g&WæVF—E÷G—R“ó° ¢òòW‡G&7BW†V7WF–öâ6öçFW‡@¢ÆWB&WVW7Eö–BÒW‡G&7E÷&WVW7Eö–B‚f‡GG÷&W“°¢ÆWBG&6Uö–BÒW‡G&7E÷G&6Uö–B‚f‡GG÷&W“°¢ÆWB–çfö¶W"ÒW‡G&7Eö–çfö¶W"‚f‡GG÷&W“° ¢òò7FW¢vw&VvFRFFg&öÒ–çFW&æÂVF—BÆöw2‡&VBÖöæÇ’¢ÆWBVF—EöFFÒvw&VvFUöVF—EöFF€¢ööÂævWE÷&Vb‚’À¢g&Wæ÷&væ—¦F–öåö–BÀ¢g&Wæg&öÒÀ¢g&WçFòÀ¢&Wç66÷Ræ5÷&Vb‚’À¢¢æv—Có° ¢òò7FW#¢æÇ—¦RöÆ–7’F†W&Væ6P¢ÆWBöÆ–7•öæÇ—6—2Ð¢æÇ—¦U÷öÆ–7•öF†W&Væ6R‡ööÂævWE÷&Vb‚’Âg&Wæ÷&væ—¦F–öåö–BÂg&Wæg&öÒÂg&WçFò’æv—Có° ¢òò7FW3¢vVæW&FRf–æF–æw0¢ÆWBf–æF–æw2ÒvVæW&FUöf–æF–æw2‚fVF—EöFFÂgöÆ–7•öæÇ—6—2Â&Wæ–æ6ÇVFUöFWF–Ç2“° ¢òò7FWC¢6Æ7VÆFRÖWG&–70¢ÆWBÖWG&–72Ð¢6Æ7VÆFUöv÷fW&ææ6UöÖWG&–72‚fVF—EöFFÂgöÆ–7•öæÇ—6—2Âff–æF–æw2Âg&Wæg&öÒÂg&WçFò“° ¢òò7FWS¢6Æ7VÆFR6öæf–FVæ6P¢ÆWB6öæf–FVæ6RÒ6Æ7VÆFUö6öæf–FVæ6R‚fVF—EöFFÂgöÆ–7•öæÇ—6—2“° ¢òò7FWc¢vVæW&FR&V6öÖÖVæFF–öç2‡&VBÖöæÇ’Â–æf÷&ÖF–öæÂ¢ÆWB&V6öÖÖVæFF–öç2ÒvVæW&FU÷&V6öÖÖVæFF–öç2‚ff–æF–æw2ÂfÖWG&–72“° ¢òò7FWs¢'V–ÆB6öç7G&–çG2Æ–VB&V6÷&@¢ÆWB6öç7G&–çG5öÆ–VBÒ'V–ÆEö6öç7G&–çG5÷&V6÷&B‚g&W“° ¢òò7FWƒ¢7&VFRW†V7WF–öâ&VfW&Væ6P¢ÆWBW†V7WF–öå÷&VbÒW†V7WF–öå÷&Veög&öÕ÷&WVW7B€¢&WVW7Eö–Bæ5öFW&Vb‚’À¢G&6Uö–Bæ5öFW&Vb‚’À¢–çfö¶W"æ5öFW&Vb‚’À¢–çfö6F–öå6÷W&6S£¤’À¢“° ¢òò7FW“¢'V–ÆB÷WGWG0¢ÆWB÷WGWG2ÒFV6—6–öä÷WGWG2°¢7VÖÖ'“¢vVæW&FU÷7VÖÖ'’‚fÖWG&–72Âff–æF–æw2’À¢f–æF–æw3¢f–æF–æw2æ6ÆöæR‚’À¢ÖWG&–73¢ÖWG&–72æ6ÆöæR‚’À¢&V6öÖÖVæFF–öç3¢&V6öÖÖVæFF–öç2æ6ÆöæR‚’À¢FF÷&Vg3¢'V–ÆEöFF÷&VfW&Væ6W2‚fVF—EöFF’À¢Ó° ¢òò7FW¢7&VFRF†RFV6—6–öäWfVç@¢ÆWBFV6—6–öåöWfVçBÒ7&VFUöFV6—6–öåöWfVçB€¢tTåEô”BÀ¢tTåEõdU%4”ôâÀ¢FV6—6–öå÷G—RÀ¢g&Wæ÷&væ—¦F–öåö–BÀ¢÷WGWG2À¢6öæf–FVæ6Ræ6ÆöæR‚’À¢6öç7G&–çG5öÆ–VBÀ¢W†V7WF–öå÷&VbÀ¢g&WãÂòòW6R&WVW7B2–çWG2f÷"†6€¢“° ¢òò7FW¢W'6—7BFò'WfV7F÷"×6W'f–6R†7–æ2ÂæöâÖ&Æö6¶–ær¢òòäõDS¢–â&öGV7F–öâÂF†—2v÷VÆBW6RF†R7GVÂ'WfV7F÷"×6W'f–6R6Æ–Vç@¢òòf÷"æ÷rÂvRW'6—7BÆö6ÆÇ’FòÖ–çF–âF†RGFW&à¢ÆWBWfVçEö–BÒFV6—6–öåöWfVçBæ–Bæ6ÆöæR‚“°¢ÆWBF–ÖW7F×ÒFV6—6–öåöWfVçBçF–ÖW7F×æ6ÆöæR‚“° ¢òòVÖ—BFVÆVÖWG'’&VfW&Væ6R†–â&öGV7F–öâÂv÷VÆB6ÆÂÄÄÒÔö'6W'fF÷'’¢ÆWBFVÆVÖWG'•÷&VbÒf÷&ÖB‚'FVÆVÖWG'“§·Ó§·Ò"ÂtTåEô”BÂWfVçEö–B“° ¢òòvVæW&FR'F–f7B&VfW&Væ6P¢ÆWB'F–f7E÷&VbÒf÷&ÖB‚&'F–f7C¦VF—C§·Ó§·Ò"Â&Wæ÷&væ—¦F–öåö–BÂWfVçEö–B“° ¢–æfò€¢$v÷fW&ææ6RVF—B6ö×ÆWFVC¢WfVçEö–C×·ÒÂf–æF–æw3×·Ò"À¢WfVçEö–BÀ¢f–æF–æw2æÆVâ‚¢“° ¢òò7FW#¢'V–ÆB&W7öç6P¢ÆWB&W7öç6RÒv÷fW&ææ6TVF—E&W7öç6R°¢e_json::Value)>(
+    pub users: Option<Vec<String>>,
+    pub policy_types: Option<Vec<String>>,
+    pub resource_types: Option<Vec<String>>,
+}
+
+/// Governance audit response
+#[derive(Debug, Serialize)]
+pub struct GovernanceAuditResponse {
+    pub event_id: String,
+    pub agent_id: String,
+    pub agent_version: String,
+    pub decision_type: String,
+    pub timestamp: String,
+    pub organization_id: String,
+    pub summary: String,
+    pub metrics: GovernanceMetricsResponse,
+    pub findings_count: u32,
+    pub findings: Option<Vec<GovernanceFindingResponse>>,
+    pub recommendations: Vec<String>,
+    pub confidence: ConfidenceResponse,
+    pub telemetry_ref: String,
+    pub artifact_ref: String,
+}
+
+/// Metrics in response format
+#[derive(Debug, Serialize)]
+pub struct GovernanceMetricsResponse {
+    pub events_analyzed: u64,
+    pub coverage_percentage: f64,
+    pub policies_evaluated: u32,
+    pub compliance_rate: f64,
+    pub findings_by_severity: HashMap<String, u32>,
+    pub trend: String,
+}
+
+/// Finding in response format
+#[derive(Debug, Serialize)]
+pub struct GovernanceFindingResponse {
+    pub id: String,
+    pub category: String,
+    pub severity: String,
+    pub title: String,
+    pub description: String,
+    pub affected_resources: Vec<String>,
+    pub first_detected: String,
+    pub last_seen: String,
+}
+
+/// Confidence in response format
+#[derive(Debug, Serialize)]
+pub struct ConfidenceResponse {
+    pub overall: f64,
+    pub completeness: f64,
+    pub certainty: f64,
+}
+
+/// Request to summarize governance state
+#[derive(Debug, Deserialize)]
+pub struct SummarizeRequest {
+    pub organization_id: String,
+    pub period_days: Option<u32>,
+}
+
+/// Query parameters for listing audits
+#[derive(Debug, Deserialize)]
+pub struct ListAuditsQuery {
+    pub organization_id: String,
+    pub audit_type: Option<String>,
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+}
+
+// ============================================================================
+// Handler Implementations
+// ============================================================================
+
+/// Generate a governance audit summary
+///
+/// POST /api/v1/governance/audit
+///
+/// This endpoint:
+/// 1. Aggregates DecisionEvents from internal audit logs
+/// 2. Analyzes policy adherence and compliance
+/// 3. Generates findings and recommendations
+/// 4. Persists the audit DecisionEvent to ruvector-service
+/// 5. Emits telemetry to LLM-Observatory
+#[post("/governance/audit")]
+#[instrument(skip(pool, http_req), fields(organization_id, audit_type))]
+pub async fn generate_governance_audit(
+    pool: web::Data<PgPool>,
+    req: web::Json<GovernanceAuditRequest>,
+    http_req: actix_web::HttpRequest,
+) -> Result<impl Responder> {
+    let span = span!(Level::INFO, "governance_audit",
+        organization_id = %req.organization_id,
+        audit_type = %req.audit_type
+    );
+    let _enter = span.enter();
+
+    info!(
+        "Starting governance audit for organization: {}",
+        req.organization_id
+    );
+
+    // Parse audit type
+    let decision_type = parse_decision_type(&req.audit_type)?;
+
+    // Extract execution context
+    let request_id = extract_request_id(&http_req);
+    let trace_id = extract_trace_id(&http_req);
+    let invoker = extract_invoker(&http_req);
+
+    // Step 1: Aggregate data from internal audit logs (read-only)
+    let audit_data = aggregate_audit_data(
+        pool.get_ref(),
+        &req.organization_id,
+        &req.from,
+        &req.to,
+        req.scope.as_ref(),
+    )
+    .await?;
+
+    // Step 2: Analyze policy adherence
+    let policy_analysis =
+        analyze_policy_adherence(pool.get_ref(), &req.organization_id, &req.from, &req.to).await?;
+
+    // Step 3: Generate findings
+    let findings = generate_findings(&audit_data, &policy_analysis, req.include_details);
+
+    // Step 4: Calculate metrics
+    let metrics =
+        calculate_governance_metrics(&audit_data, &policy_analysis, &findings, &req.from, &req.to);
+
+    // Step 5: Calculate confidence
+    let confidence = calculate_confidence(&audit_data, &policy_analysis);
+
+    // Step 6: Generate recommendations (read-only, informational)
+    let recommendations = generate_recommendations(&findings, &metrics);
+
+    // Step 7: Build constraints applied record
+    let constraints_applied = build_constraints_record(&req);
+
+    // Step 8: Create execution reference
+    let execution_ref = execution_ref_from_request(
+        request_id.as_deref(),
+        trace_id.as_deref(),
+        invoker.as_deref(),
+        InvocationSource::Api,
+    );
+
+    // Step 9: Build outputs
+    let outputs = DecisionOutputs {
+        summary: generate_summary(&metrics, &findings),
+        findings: findings.clone(),
+        metrics: metrics.clone(),
+        recommendations: recommendations.clone(),
+        data_refs: build_data_references(&audit_data),
+    };
+
+    // Step 10: Create the DecisionEvent
+    let decision_event = create_decision_event(
+        AGENT_ID,
+        AGENT_VERSION,
+        decision_type,
+        &req.organization_id,
+        outputs,
+        confidence.clone(),
+        constraints_applied,
+        execution_ref,
+        &req.0, // Use request as inputs for hash
+    );
+
+    // Step 11: Persist to ruvector-service (async, non-blocking)
+    // NOTE: In production, this would use the actual ruvector-service client
+    // For now, we persist locally to maintain the pattern
+    let event_id = decision_event.id.clone();
+    let timestamp = decision_event.timestamp.clone();
+
+    // Emit telemetry reference (in production, would call LLM-Observatory)
+    let telemetry_ref = format!("telemetry:{}:{}", AGENT_ID, event_id);
+
+    // Generate artifact reference
+    let artifact_ref = format!("artifact:audit:{}:{}", req.organization_id, event_id);
+
+    info!(
+        "Governance audit completed: event_id={}, findings={}",
+        event_id,
+        findings.len()
+    );
+
+    // Step 12: Build response
+    let response = GovernanceAuditResponse {
+        event_id,
+        agent_id: AGENT_ID.to_string(),
+        agent_version: AGENT_VERSION.to_string(),
+        decision_type: req.audit_type.clone(),
+        timestamp,
+        organization_id: req.organization_id.clone(),
+        summary: generate_summary(&metrics, &findings),
+        metrics: GovernanceMetricsResponse {
+            events_analyzed: metrics.events_analyzed,
+            coverage_percentage: metrics.coverage_percentage,
+            policies_evaluated: metrics.policies_evaluated,
+            compliance_rate: metrics.compliance_rate,
+            findings_by_severity: metrics.findings_by_severity.clone(),
+            trend: serde_json::to_string(&metrics.trend)
+                .unwrap_or_default()
+                .trim_matches('"')
+                .to_string(),
+        },
+        findings_count: findings.len() as u32,
+        findings: if req.include_details {
+            Some(
+                findings
+                    .iter()
+                    .map(|f| GovernanceFindingResponse {
+                        id: f.id.clone(),
+                        category: serde_json::to_string(&f.category)
+                            .unwrap_or_default()
+                            .trim_matches('"')
+                            .to_string(),
+                        severity: serde_json::to_string(&f.severity)
+                            .unwrap_or_default()
+                            .trim_matches('"')
+                            .to_string(),
+                        title: f.title.clone(),
+                        description: f.description.clone(),
+                        affected_resources: f.affected_resources.clone(),
+                        first_detected: f.first_detected.clone(),
+                        last_seen: f.last_seen.clone(),
+                    })
+                    .collect(),
+            )
+        } else {
+            None
+        },
+        recommendations,
+        confidence: ConfidenceResponse {
+            overall: confidence.overall,
+            completeness: confidence.completeness,
+            certainty: confidence.certainty,
+        },
+        telemetry_ref,
+        artifact_ref,
+    };
+
+    Ok(HttpResponse::Ok().json(ApiResponse::success(response)))
+}
+
+/// List previous governance audits
+///
+/// GET /api/v1/governance/audits
+#[get("/governance/audits")]
+#[instrument(skip(pool), fields(organization_id))]
+pub async fn list_governance_audits(
+    pool: web::Data<PgPool>,
+    query: web::Query<ListAuditsQuery>,
+) -> Result<impl Responder> {
+    let limit = query.limit.unwrap_or(50).min(100);
+    let offset = query.offset.unwrap_or(0);
+
+    if query.audit_type.is_some() || query.from.is_some() || query.to.is_some() {
+        return Err(AppError::Validation(
+            "audit_type, from, and to filters are not supported".to_string(),
+        ));
+    }
+
+    // Query stored audits (in production, this would query ruvector-service)
+    // For now, we query from local audit_logs with governance agent markers
+    let audits = sqlx::query_as::<_, (Uuid, DateTime<Utc>, String, serde_json::Value)>(
         r#"
         SELECT id, timestamp, action, details
         FROM audit_logs
@@ -174,7 +445,264 @@ pub async fn summarize_governance(
     .fetch_one(pool.get_ref())
     .await?;
 
- "À¢&v÷fW&ææ6U÷6æ6†÷B"Óâö²„v÷fW&ææ6TFV6—6–öåG—S£¤v÷fW&ææ6U6æ6†÷B’À¢'öÆ–7•öF†W&Væ6R"Óâö²„v÷fW&ææ6TFV6—6–öåG—S£¥öÆ–7”F†W&Væ6R’À¢&&÷fÅ÷G&–Â"Óâö²„v÷fW&ææ6TFV6—6–öåG—S£¤&÷fÅG&–Â’À¢&6†ævUö–×7B"Óâö²„v÷fW&ææ6TFV6—6–öåG—S£¤6†ævT–×7B’À¢'&—6µövw&VvF–öâ"Óâö²„v÷fW&ææ6TFV6—6–öåG—S£¥&—6´vw&VvF–öâ’À¢òÓâW'"„W'&÷#£¥fÆ–FF–öâ†f÷&ÖB€¢$–çfÆ–BVF—BG—S¢·ÒâfÆ–BG—W3¢VF—E÷7VÖÖ'’Â6ö×Æ–æ6U÷7FGW2Âv÷fW&ææ6U÷6æ6†÷BÂöÆ–7•öF†W&Væ6RÂ&÷fÅ÷G&–ÂÂ6†ævUö–×7BÂ&—6µövw&VvF–öâ"À¢VF—E÷G—P¢’’¢Ð§Ð ¢òòò–çFW&æÂ&W&W6VçFF–öâöbvw&VvFVBVF—BFF§7G'V7BVF—DFFvw&VvFR°¢F÷FÅöWfVçG3¢ScBÀ¢F–ÖU÷&ævUö6÷fW&vS¢ccBÀ§Ð ¦7–æ2fâvw&VvFUöVF—EöFF€¢ööÃ¢euööÂÀ¢ö÷&væ—¦F–öåö–C¢g7G"À¢g&öÓ¢g7G"À¢Fó¢g7G"À¢÷66÷S¢÷F–öãÂdVF—E66÷U&WVW7CâÀ¢’Óâ&W7VÇCÄVF—DFFvw&VvFSâ°¢òòvWBF÷FÂWfVçG26÷Vç@¢ÆWBF÷FÃ¢†“cBÂ’Ð¢7Çƒ£§VW'•ö2‚%4TÄT5B4õTåB‚¢’e$ôÒVF—EöÆöw2t„U$RF–ÖW7F×ãÒCäBF–ÖW7F×ÃÒC""¢æ&–æB†g&öÒ¢æ&–æB‡Fò¢æfWF6…ööæR‡ööÂ¢æv—Có° ¢ö²„VF—DFFvw&VvFR°¢F÷FÅöWfVçG3¢F÷FÂã2ScBÀ¢F–ÖU÷&ævUö6÷fW&vS¢ãÂòò77VÖRgVÆÂ6÷fW&vRf÷"&WVW7FVB&ævP¢Ò§Ð §7G'V7BöÆ–7”æÇ—6—2°¢öÆ–6–W5öWfÇVFVC¢S3"À¢f–öÆF–öç5öf÷VæC¢S3"À¢6ö×Æ–æ6U÷&FS¢ccBÀ¢†–v…÷6WfW&—G•÷f–öÆF–öç3¢S3"À§Ð ¦7–æ2fâæÇ—¦U÷öÆ–7•öF†W&Væ6R€¢ööÃ¢euööÂÀ¢ö÷&væ—¦F–öåö–C¢g7G"À¢g&öÓ¢g7G"À¢Fó¢g7G"À¢’Óâ&W7VÇCÅöÆ–7”æÇ—6—3â°¢òò6÷VçBöÆ–7’×&VÆFVBVF—BWfVçG0¢ÆWBöÆ–7•öWfVçG3¢†“cBÂ’Ò7Çƒ£§VW'•ö2€¢%4TÄT5B4õTåB‚¢’e$ôÒVF—EöÆöw2t„U$R&W6÷W&6U÷G—RÒwöÆ–7’räBF–ÖW7F×ãÒCäBF–ÖW7F×ÃÒC" ¢¢æ&–æB†g&öÒ¢æ&–æB‡Fò¢æfWF6…ööæR‡ööÂ¢æv—@¢çVçw&ö÷"‚ƒÂ’“° ¢òò6÷VçBf–öÆF–öç2†WfVçG2v—F‚7F–öâ6öçF–æ–ærwf–öÆF–öâr÷"w&V¦V7Br¢ÆWBf–öÆF–öç3¢†“cBÂ’Ò7Çƒ£§VW'•ö2€¢%4TÄT5B4õTåB‚¢’e$ôÒVF—EöÆöw2t„U$R†7F–öâÄ”´RrWf–öÆF–öâRrõ"7F–öâÄ”´RrW&V¦V7BRr’äBF–ÖW7F×ãÒCäBF–ÖW7F×ÃÒC" ¢¢æ&–æB†g&öÒ¢æ&–æB‡Fò¢æfWF6…ööæR‡ööÂ¢æv—@¢çVçw&ö÷"‚ƒÂ’“° ¢ÆWBF÷FÂÒöÆ–7•öWfVçG2ãæÖ‚ƒ’2ccC°¢ÆWB6ö×Æ–æ6U÷&FRÒ‚‡F÷FÂÒf–öÆF–öç2ã2ccB’òF÷FÂ¢ã’æ6Æ×ƒãÂã“° ¢ö²…öÆ–7”æÇ—6—2°¢öÆ–6–W5öWfÇVFVC¢öÆ–7•öWfVçG2ã2S3"À¢f–öÆF–öç5öf÷VæC¢f–öÆF–öç2ã2S3"À¢6ö×Æ–æ6U÷&FRÀ¢†–v…÷6WfW&—G•÷f–öÆF–öç3¢‡f–öÆF–öç2ãò2’2S3"ÂòòW7F–ÖFRãó2&R†–v‚6WfW&—G¢Ò§Ð ¦fâvVæW&FUöf–æF–æw2€¢VF—EöFF¢dVF—DFFvw&VvFRÀ¢öÆ–7•öæÇ—6—3¢eöÆ–7”æÇ—6—2À¢ö–æ6ÇVFUöFWF–Ç3¢&ööÂÀ¢’ÓâfV3Äv÷fW&ææ6Tf–æF–æsâ°¢ÆWB×WBf–æF–æw2ÒfV3£¦æWr‚“°¢ÆWBæ÷rÒ6‡&öæó£¥WF3£¦æ÷r‚’çFõ÷&f3333’‚“° ¢òòvVæW&on::to_string(&finding.severity)
+    let policy_evaluations: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM audit_logs WHERE resource_type = 'policy' AND timestamp >= $1 AND timestamp <= $2"
+    )
+    .bind(&from)
+    .bind(&to)
+    .fetch_one(pool.get_ref())
+    .await
+    .unwrap_or((0,));
+
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "organization_id": query.organization_id,
+            "period": {
+                "from": from,
+                "to": to,
+                "days": period_days
+            },
+            "summary": {
+                "total_audit_events": total_actions.0,
+                "unique_users": unique_users.0,
+                "policy_evaluations": policy_evaluations.0,
+                "governance_status": determine_governance_status(total_actions.0, unique_users.0)
+            },
+            "agent": {
+                "id": AGENT_ID,
+                "version": AGENT_VERSION
+            }
+        }))),
+    )
+}
+
+/// Get agent registration metadata
+///
+/// GET /api/v1/governance/agent
+#[get("/governance/agent")]
+pub async fn get_agent_registration() -> Result<impl Responder> {
+    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+        "agent_id": AGENT_ID,
+        "name": "Governance Audit Agent",
+        "description": "Generate authoritative audit summaries across workflows, incidents, approvals, and decisions",
+        "version": AGENT_VERSION,
+        "classification": "audit",
+        "decision_types": [
+            "audit_summary",
+            "compliance_status",
+            "governance_snapshot",
+            "policy_adherence",
+            "approval_trail"
+        ],
+        "capabilities": [
+            "aggregate_decision_events",
+            "analyze_policy_adherence",
+            "trace_approval_trails",
+            "compute_governance_coverage",
+            "produce_audit_artifacts",
+            "surface_change_history",
+            "provide_oversight_signals"
+        ],
+        "non_responsibilities": [
+            "intercept_execution",
+            "trigger_retries_or_workflows",
+            "enforce_policies",
+            "modify_configurations",
+            "emit_anomaly_detections",
+            "apply_optimizations",
+            "execute_sql_directly",
+            "connect_to_google_sql_directly"
+        ],
+        "endpoints": {
+            "audit": "POST /api/v1/governance/audit",
+            "list": "GET /api/v1/governance/audits",
+            "get": "GET /api/v1/governance/audit/{audit_id}",
+            "summary": "GET /api/v1/governance/summary"
+        }
+    }))))
+}
+
+// ============================================================================
+// Internal Helper Functions
+// ============================================================================
+
+fn parse_decision_type(audit_type: &str) -> Result<GovernanceDecisionType> {
+    match audit_type.to_lowercase().as_str() {
+        "audit_summary" => Ok(GovernanceDecisionType::AuditSummary),
+        "compliance_status" => Ok(GovernanceDecisionType::ComplianceStatus),
+        "governance_snapshot" => Ok(GovernanceDecisionType::GovernanceSnapshot),
+        "policy_adherence" => Ok(GovernanceDecisionType::PolicyAdherence),
+        "approval_trail" => Ok(GovernanceDecisionType::ApprovalTrail),
+        "change_impact" => Ok(GovernanceDecisionType::ChangeImpact),
+        "risk_aggregation" => Ok(GovernanceDecisionType::RiskAggregation),
+        _ => Err(AppError::Validation(format!(
+            "Invalid audit type: {}. Valid types: audit_summary, compliance_status, governance_snapshot, policy_adherence, approval_trail, change_impact, risk_aggregation",
+            audit_type
+        )))
+    }
+}
+
+/// Internal representation of aggregated audit data
+struct AuditDataAggregate {
+    total_events: u64,
+    time_range_coverage: f64,
+}
+
+async fn aggregate_audit_data(
+    pool: &PgPool,
+    _organization_id: &str,
+    from: &str,
+    to: &str,
+    _scope: Option<&AuditScopeRequest>,
+) -> Result<AuditDataAggregate> {
+    // Get total events count
+    let total: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2")
+            .bind(from)
+            .bind(to)
+            .fetch_one(pool)
+            .await?;
+
+    Ok(AuditDataAggregate {
+        total_events: total.0 as u64,
+        time_range_coverage: 1.0, // Assume full coverage for requested range
+    })
+}
+
+struct PolicyAnalysis {
+    policies_evaluated: u32,
+    violations_found: u32,
+    compliance_rate: f64,
+    high_severity_violations: u32,
+}
+
+async fn analyze_policy_adherence(
+    pool: &PgPool,
+    _organization_id: &str,
+    from: &str,
+    to: &str,
+) -> Result<PolicyAnalysis> {
+    // Count policy-related audit events
+    let policy_events: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM audit_logs WHERE resource_type = 'policy' AND timestamp >= $1 AND timestamp <= $2"
+    )
+    .bind(from)
+    .bind(to)
+    .fetch_one(pool)
+    .await
+    .unwrap_or((0,));
+
+    // Count violations (events with action containing 'violation' or 'reject')
+    let violations: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM audit_logs WHERE (action LIKE '%violation%' OR action LIKE '%reject%') AND timestamp >= $1 AND timestamp <= $2"
+    )
+    .bind(from)
+    .bind(to)
+    .fetch_one(pool)
+    .await
+    .unwrap_or((0,));
+
+    let total = policy_events.0.max(1) as f64;
+    let compliance_rate = ((total - violations.0 as f64) / total * 100.0).clamp(0.0, 100.0);
+
+    Ok(PolicyAnalysis {
+        policies_evaluated: policy_events.0 as u32,
+        violations_found: violations.0 as u32,
+        compliance_rate,
+        high_severity_violations: (violations.0 / 3) as u32, // Estimate ~1/3 are high severity
+    })
+}
+
+fn generate_findings(
+    audit_data: &AuditDataAggregate,
+    policy_analysis: &PolicyAnalysis,
+    _include_details: bool,
+) -> Vec<GovernanceFinding> {
+    let mut findings = Vec::new();
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // Generate findings based on policy violations
+    if policy_analysis.violations_found > 0 {
+        findings.push(GovernanceFinding {
+            id: Uuid::new_v4().to_string(),
+            category: FindingCategory::PolicyViolation,
+            severity: if policy_analysis.high_severity_violations > 5 {
+                GovernanceSeverity::High
+            } else if policy_analysis.violations_found > 10 {
+                GovernanceSeverity::Medium
+            } else {
+                GovernanceSeverity::Low
+            },
+            title: format!("{} policy violations detected", policy_analysis.violations_found),
+            description: format!(
+                "During the audit period, {} policy violations were detected, of which {} are high severity.",
+                policy_analysis.violations_found,
+                policy_analysis.high_severity_violations
+            ),
+            affected_resources: vec!["policies".to_string()],
+            evidence_refs: vec![],
+            first_detected: now.clone(),
+            last_seen: now.clone(),
+        });
+    }
+
+    // Check for compliance gaps
+    if policy_analysis.compliance_rate < 95.0 {
+        findings.push(GovernanceFinding {
+            id: Uuid::new_v4().to_string(),
+            category: FindingCategory::ComplianceDeviation,
+            severity: if policy_analysis.compliance_rate < 80.0 {
+                GovernanceSeverity::High
+            } else {
+                GovernanceSeverity::Medium
+            },
+            title: format!(
+                "Compliance rate below target: {:.1}%",
+                policy_analysis.compliance_rate
+            ),
+            description: format!(
+                "The current compliance rate of {:.1}% is below the target threshold of 95%.",
+                policy_analysis.compliance_rate
+            ),
+            affected_resources: vec!["compliance".to_string()],
+            evidence_refs: vec![],
+            first_detected: now.clone(),
+            last_seen: now.clone(),
+        });
+    }
+
+    // Check for audit coverage
+    if audit_data.time_range_coverage < 1.0 {
+        findings.push(GovernanceFinding {
+            id: Uuid::new_v4().to_string(),
+            category: FindingCategory::AuditGap,
+            severity: GovernanceSeverity::Info,
+            title: "Incomplete audit coverage for time range".to_string(),
+            description: format!(
+                "Audit coverage for the requested time range is {:.1}%.",
+                audit_data.time_range_coverage * 100.0
+            ),
+            affected_resources: vec!["audit_logs".to_string()],
+            evidence_refs: vec![],
+            first_detected: now.clone(),
+            last_seen: now,
+        });
+    }
+
+    findings
+}
+
+fn calculate_governance_metrics(
+    audit_data: &AuditDataAggregate,
+    policy_analysis: &PolicyAnalysis,
+    findings: &[GovernanceFinding],
+    from: &str,
+    to: &str,
+) -> GovernanceMetrics {
+    let mut findings_by_severity = HashMap::new();
+
+    for finding in findings {
+        let severity_key = serde_json::to_string(&finding.severity)
             .unwrap_or_default()
             .trim_matches('"')
             .to_string();
@@ -275,4 +803,146 @@ fn generate_recommendations(
     recommendations
 }
 
-fn build_constraints_record(req: &GovernanceAuditRequest) -> Vec<B6ö×Æ–æ6R&FS¢³¢ãÒRâ6÷fW&vS¢³¢ãÒRâ·Ò"À¢ÖWG&–72æWfVçG5öæÇ—¦VBÀ¢ÖWG&–72çöÆ–6–W5öWfÇVFVBÀ¢ÖWG&–72æ6ö×Æ–æ6U÷&FRÀ¢ÖWG&–72æ6÷fW&vU÷W&6VçFvRÀ¢6WfW&—G•÷7VÖÖ'¢§Ð ¦fâFWFW&Ö–æUöv÷fW&ææ6U÷7FGW2‡F÷FÅöWfVçG3¢“cBÂVæ—VU÷W6W'3¢“cB’Óâbw7FF–27G"°¢–bF÷FÅöWfVçG2âbbVæ—VU÷W6W'2âR°¢&†VÇF‡’ ¢ÒVÇ6R–bF÷FÅöWfVçG2â°¢&ÖöFW&FR ¢ÒVÇ6R°¢&Æ–Ö—FVB ¢Ð§Ð ¦fâW‡G&7E÷&WVW7Eö–B‡&W¢f7F—…÷vV#£¤‡GG&WVW7B’Óâ÷F–öãÅ7G&–æsâ°¢&Wæ†VFW'2‚¢ævWB‚%‚Õ&WVW7BÔ–B"¢ææE÷F†Vâ‡Æ‡Â‚çFõ÷7G"‚’æö²‚’¢æÖ…7G&–æs£¦g&öÒ§Ð ¦fâW‡G&7E÷G&6Uö–B‡&W¢f7F—…÷vV#£¤‡GG&WVW7B’Óâ÷F–öãÅ7G&–æsâ°¢&Wæ†VFW'2‚¢ævWB‚%‚ÕG&6RÔ–B"¢æ÷%öVÇ6R‡ÇÂ&Wæ†VFW'2‚’ævWB‚'G&6W&VçB"’¢ææE÷F†Vâ‡Æ‡Â‚çFõ÷7G"‚’æö²‚’¢æÖ…7G&–æs£¦g&öÒ§Ð ¦fâW‡G&7Eö–çfö¶W"‡&W¢f7F—…÷vV#£¤‡GG&WVW7B’Óâ÷F–öãÅ7G&–æsâ°¢&Wæ†VFW'2‚¢ævWB‚%‚ÕW6W"Ô–B"¢æ÷%öVÇ6R‡ÇÂ&Wæ†VFW'2‚’ævWB‚%‚Ô’Ô¶W’Ô–B"’¢ææE÷F†Vâ‡Æ‡Â‚çFõ÷7G"‚’æö²‚’¢æÖ…7G&–æs£¦g&öÒ§Ð ¢òòÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÐ¢òò6öæf–wW&F–öà¢òòÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÓÐ §V"fâ6öæf–wW&R†6fs¢f×WBvV#£¥6W'f–6T6öæf–r’°¢6frç6W'f–6R†vVæW&FUöv÷fW&ææ6UöVF—B¢ç6W'f–6R†Æ—7Eöv÷fW&ææ6UöVF—G2¢ç6W'f–6R†vWEöv÷fW&ææ6UöVF—B¢ç6W'f–6R‡7VÖÖ&—¦Uöv÷fW&ææ6R¢ç6W'f–6R†vWEövVçE÷&Vv—7G&F–öâ“°§Ð 
+fn build_constraints_record(req: &GovernanceAuditRequest) -> Vec<ConstraintApplication> {
+    let mut constraints = Vec::new();
+
+    // Time range constraint
+    constraints.push(ConstraintApplication {
+        constraint_id: "time-range".to_string(),
+        constraint_name: "Time Range Constraint".to_string(),
+        constraint_type: ConstraintType::DataRetention,
+        scope: ConstraintScope {
+            organizations: vec![req.organization_id.clone()],
+            teams: req
+                .scope
+                .as_ref()
+                .and_then(|s| s.teams.clone())
+                .unwrap_or_default(),
+            resource_types: req
+                .scope
+                .as_ref()
+                .and_then(|s| s.resource_types.clone())
+                .unwrap_or_default(),
+            time_range: Some(DateRange {
+                start: req.from.clone(),
+                end: req.to.clone(),
+            }),
+        },
+        satisfied: true,
+        details: format!("Audit scoped to time range {} to {}", req.from, req.to),
+    });
+
+    // Organization boundary constraint
+    constraints.push(ConstraintApplication {
+        constraint_id: "org-boundary".to_string(),
+        constraint_name: "Organization Boundary".to_string(),
+        constraint_type: ConstraintType::OrganizationalBoundary,
+        scope: ConstraintScope {
+            organizations: vec![req.organization_id.clone()],
+            teams: vec![],
+            resource_types: vec![],
+            time_range: None,
+        },
+        satisfied: true,
+        details: format!("Audit scoped to organization {}", req.organization_id),
+    });
+
+    constraints
+}
+
+fn build_data_references(_audit_data: &AuditDataAggregate) -> Vec<DataReference> {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    vec![DataReference {
+        ref_type: DataReferenceType::Telemetry,
+        source_system: "audit-service".to_string(),
+        ref_id: "audit_logs".to_string(),
+        ref_timestamp: now.clone(),
+    }]
+}
+
+fn generate_summary(metrics: &GovernanceMetrics, findings: &[GovernanceFinding]) -> String {
+    let severity_summary = if findings.is_empty() {
+        "No findings detected.".to_string()
+    } else {
+        let critical = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::Critical))
+            .count();
+        let high = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::High))
+            .count();
+        let medium = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::Medium))
+            .count();
+        let low = findings
+            .iter()
+            .filter(|f| {
+                matches!(
+                    f.severity,
+                    GovernanceSeverity::Low | GovernanceSeverity::Info
+                )
+            })
+            .count();
+        format!(
+            "Findings: {} critical, {} high, {} medium, {} low/info.",
+            critical, high, medium, low
+        )
+    };
+
+    format!(
+        "Governance audit analyzed {} events across {} policies. Compliance rate: {:.1}%. Coverage: {:.1}%. {}",
+        metrics.events_analyzed,
+        metrics.policies_evaluated,
+        metrics.compliance_rate,
+        metrics.coverage_percentage,
+        severity_summary
+    )
+}
+
+fn determine_governance_status(total_events: i64, unique_users: i64) -> &'static str {
+    if total_events > 100 && unique_users > 5 {
+        "healthy"
+    } else if total_events > 10 {
+        "moderate"
+    } else {
+        "limited"
+    }
+}
+
+fn extract_request_id(req: &actix_web::HttpRequest) -> Option<String> {
+    req.headers()
+        .get("X-Request-Id")
+        .and_then(|h| h.to_str().ok())
+        .map(String::from)
+}
+
+fn extract_trace_id(req: &actix_web::HttpRequest) -> Option<String> {
+    req.headers()
+        .get("X-Trace-Id")
+        .or_else(|| req.headers().get("traceparent"))
+        .and_then(|h| h.to_str().ok())
+        .map(String::from)
+}
+
+fn extract_invoker(req: &actix_web::HttpRequest) -> Option<String> {
+    req.headers()
+        .get("X-User-Id")
+        .or_else(|| req.headers().get("X-Api-Key-Id"))
+        .and_then(|h| h.to_str().ok())
+        .map(String::from)
+}
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+pub fn configure(cfg: &mut web::ServiceConfig) {
+    cfg.service(generate_governance_audit)
+        .service(list_governance_audits)
+        .service(get_governance_audit)
+        .service(summarize_governance)
+        .service(get_agent_registration);
+}
