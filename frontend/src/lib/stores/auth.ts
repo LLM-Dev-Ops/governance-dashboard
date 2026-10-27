@@ -135,7 +135,7 @@ class AuthStoreManager {
 
   // ==================== Private Methods ====================
 
-  private setUser(user: User | null): void {
+  public setUser(user: User | null): void {
     this.store.update((state) => ({
       ...state,
       user,
