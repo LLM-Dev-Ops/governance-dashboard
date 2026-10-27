@@ -21,6 +21,7 @@ impl CsrfProtection {
     }
 
     /// Validate a CSRF token
+    #[cfg(test)]
     /// Generate a CSRF token bound to a session.
     pub fn generate_token(&self, session_id: &str) -> String {
         let timestamp = chrono::Utc::now().timestamp();
