@@ -1,4 +1,3 @@
-
 pub struct MfaService;
 
 impl MfaService {

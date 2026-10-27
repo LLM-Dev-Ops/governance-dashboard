@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod team_management_tests {
-    
 
     #[test]
     fn test_create_team() {

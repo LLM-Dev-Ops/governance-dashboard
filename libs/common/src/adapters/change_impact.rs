@@ -29,11 +29,11 @@ use super::observatory::{
 use super::policy_engine::PolicyEngineConsumer;
 use super::registry::RegistryConsumer;
 use super::ruvector::{
-    create_decision_event, execution_ref_from_request, ConfidenceBand,
-    ConfidenceFactor, ConfidenceImpact, ConstraintApplication, ConstraintScope, ConstraintType,
-    DataReference, DataReferenceType, DateRange, DecisionConfidence, DecisionEvent,
-    DecisionOutputs, FindingCategory, GovernanceDecisionType,
-    GovernanceFinding, GovernanceMetrics, GovernanceSeverity, InvocationSource, RuVectorConsumer, TrendDirection,
+    create_decision_event, execution_ref_from_request, ConfidenceBand, ConfidenceFactor,
+    ConfidenceImpact, ConstraintApplication, ConstraintScope, ConstraintType, DataReference,
+    DataReferenceType, DateRange, DecisionConfidence, DecisionEvent, DecisionOutputs,
+    FindingCategory, GovernanceDecisionType, GovernanceFinding, GovernanceMetrics,
+    GovernanceSeverity, InvocationSource, RuVectorConsumer, TrendDirection,
 };
 use super::{EcosystemConsumer, UpstreamConfig};
 use crate::error::Result;

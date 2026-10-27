@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod oauth_service_tests {
-    
 
     #[test]
     fn test_google_oauth_url_generation() {

@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod mfa_service_tests {
-    
 
     #[test]
     fn test_totp_secret_generation() {

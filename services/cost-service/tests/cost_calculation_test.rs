@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod cost_calculation_tests {
-    
 
     #[test]
     fn test_gpt4_cost_calculation() {

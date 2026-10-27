@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod budget_tracking_tests {
-    
 
     #[test]
     fn test_create_budget() {
