@@ -1,59 +1,48 @@
-#[cfg(test)]
-mod team_management_tests {
+use user_service::handlers::organizations::{
+    CreateOrganizationRequest, CreateTeamRequest,
+};
+use validator::Validate;
 
-    #[test]
-    fn test_create_team() {
-        // Test team creation
-        // TODO: Implement team creation test
-        assert!(true); // Placeholder
-    }
+#[test]
+fn team_name_must_not_be_empty() {
+    let request = CreateTeamRequest {
+        name: String::new(),
+        description: None,
+        settings: None,
+    };
+    assert!(request.validate().is_err());
+}
 
-    #[test]
-    fn test_add_user_to_team() {
-        // Test adding user to team
-        // TODO: Implement add user to team test
-        assert!(true); // Placeholder
-    }
+#[test]
+fn team_name_accepts_bounded_values() {
+    let request = CreateTeamRequest {
+        name: "platform".to_string(),
+        description: Some("governance operators".to_string()),
+        settings: Some(serde_json::json!({"alerts": true})),
+    };
+    assert!(request.validate().is_ok());
+}
 
-    #[test]
-    fn test_remove_user_from_team() {
-        // Test removing user from team
-        // TODO: Implement remove user from team test
-        assert!(true); // Placeholder
-    }
+#[test]
+fn organization_slug_accepts_lowercase_url_safe_values() {
+    let request = CreateOrganizationRequest {
+        name: "Platform".to_string(),
+        slug: "platform-42".to_string(),
+        description: None,
+        settings: None,
+    };
+    assert!(request.validate().is_ok());
+}
 
-    #[test]
-    fn test_list_team_members() {
-        // Test listing team members
-        // TODO: Implement team members listing test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_update_team_settings() {
-        // Test team settings update
-        // TODO: Implement team settings update test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_delete_team() {
-        // Test team deletion
-        // TODO: Implement team deletion test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_team_ownership_transfer() {
-        // Test team ownership transfer
-        // TODO: Implement ownership transfer test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_nested_teams() {
-        // Test nested team structure
-        // TODO: Implement nested teams test
-        assert!(true); // Placeholder
+#[test]
+fn organization_slug_rejects_ambiguous_values() {
+    for slug in ["Platform", "platform_42", "platform 42"] {
+        let request = CreateOrganizationRequest {
+            name: "Platform".to_string(),
+            slug: slug.to_string(),
+            description: None,
+            settings: None,
+        };
+        assert!(request.validate().is_err(), "accepted invalid slug: {slug}");
     }
 }
