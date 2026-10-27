@@ -1,35 +1,23 @@
 use actix_web::{web, App, HttpServer};
+use auth_service::{config::Config, handlers};
 use tracing::{info, Level};
-
-mod config;
-mod handlers;
-mod middleware;
-mod models;
-mod services;
-
-use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize tracing
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
-    // Load configuration
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
 
     info!("Starting auth-service on {}:{}", config.host, config.port);
 
-    // Initialize database connection pool
     let db_pool = llm_governance_database::create_pool(&config.database_url)
         .await
         .expect("Failed to create database pool");
 
-    // Initialize Redis connection
     let redis_client =
         redis::Client::open(config.redis_url.clone()).expect("Failed to create Redis client");
 
-    // Start HTTP server
     let bind_address = (config.host.clone(), config.port);
 
     HttpServer::new(move || {

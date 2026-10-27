@@ -1,56 +1,39 @@
+use auth_service::services::jwt_service::JwtService;
 use uuid::Uuid;
 
-#[cfg(test)]
-mod jwt_service_tests {
-    use super::*;
+#[test]
+fn generated_access_token_round_trips_identity() {
+    let service = JwtService::new("test-secret", 300);
+    let user_id = Uuid::new_v4();
+    let token = service
+        .generate_token(user_id, "person@example.com")
+        .expect("token generation succeeds");
+    let claims = service.verify_token(&token).expect("token verifies");
 
-    const TEST_SECRET: &str = "test-secret-key-for-jwt-testing-only-not-production";
+    assert_eq!(claims.user_id, user_id);
+    assert_eq!(claims.sub, user_id.to_string());
+    assert_eq!(claims.email, "person@example.com");
+    assert!(claims.exp > claims.iat);
+}
 
-    #[test]
-    fn test_jwt_token_generation() {
-        // This test will be implemented once JWT service is complete
-        // For now, we're creating the test structure
-        let _user_id = Uuid::new_v4();
-        let _email = "test@example.com";
+#[test]
+fn access_token_rejects_a_different_signing_secret() {
+    let issuer = JwtService::new("issuer-secret", 300);
+    let verifier = JwtService::new("different-secret", 300);
+    let token = issuer
+        .generate_token(Uuid::new_v4(), "person@example.com")
+        .expect("token generation succeeds");
 
-        // TODO(#6): Implement JWT generation test
-        // let token = JwtService::generate_token(user_id, email, TEST_SECRET);
-        // assert!(token.is_ok());
-        assert!(true); // Placeholder
-    }
+    assert!(verifier.verify_token(&token).is_err());
+}
 
-    #[test]
-    fn test_jwt_token_validation() {
-        // Test JWT token validation
-        // TODO(#6): Implement JWT validation test
-        assert!(true); // Placeholder
-    }
+#[test]
+fn refresh_tokens_are_unique_uuids() {
+    let service = JwtService::new("test-secret", 300);
+    let first = service.generate_refresh_token();
+    let second = service.generate_refresh_token();
 
-    #[test]
-    fn test_jwt_token_expiration() {
-        // Test that expired tokens are rejected
-        // TODO(#6): Implement JWT expiration test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_jwt_invalid_signature() {
-        // Test that tokens with invalid signatures are rejected
-        // TODO(#6): Implement invalid signature test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_jwt_missing_claims() {
-        // Test that tokens with missing required claims are rejected
-        // TODO(#6): Implement missing claims test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_refresh_token_generation() {
-        // Test refresh token generation
-        // TODO(#6): Implement refresh token test
-        assert!(true); // Placeholder
-    }
+    assert_ne!(first, second);
+    assert!(Uuid::parse_str(&first).is_ok());
+    assert!(Uuid::parse_str(&second).is_ok());
 }
