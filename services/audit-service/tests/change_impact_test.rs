@@ -221,8 +221,7 @@ mod contract_tests {
         // - Use local persistence
 
         let allowed_persistence = "ruvector-service";
-        let forbidden_persistence =
-            ["google-sql", "local-file", "local-database", "direct-sql"];
+        let forbidden_persistence = ["google-sql", "local-file", "local-database", "direct-sql"];
 
         assert!(!forbidden_persistence.contains(&allowed_persistence));
     }
