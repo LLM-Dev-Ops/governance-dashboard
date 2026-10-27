@@ -1,6 +1,6 @@
 use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
+use validator::{Validate, ValidationError};
 use sqlx::PgPool;
 use uuid::Uuid;
 use llm_governance_common::{AppError, Result, ApiResponse};
@@ -10,11 +10,23 @@ use chrono::{DateTime, Utc};
 // Request/Response Types
 // ============================================================================
 
+fn validate_slug(slug: &str) -> std::result::Result<(), ValidationError> {
+    if slug
+        .chars()
+        .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-')
+    {
+        Ok(())
+    } else {
+        Err(ValidationError::new("invalid_slug"))
+    }
+}
+
+
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateOrganizationRequest {
     #[validate(length(min = 1, max = 255))]
     pub name: String,
-    #[validate(length(min = 1, max = 100), regex = "^[a-z0-9-]+$")]
+    #[validate(length(min = 1, max = 100), custom(function = "validate_slug"))]
     pub slug: String,
     pub description: Option<String>,
     pub settings: Option<serde_json::Value>,
