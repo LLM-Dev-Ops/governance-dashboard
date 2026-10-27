@@ -72,6 +72,12 @@ pub async fn proxy_llm_request(
     req: web::Json<ProxyRequest>,
     http_req: HttpRequest,
 ) -> Result<impl Responder> {
+    if req.stream.unwrap_or(false) {
+        return Err(AppError::BadRequest(
+            "Streaming proxy responses are not supported".to_string(),
+        ));
+    }
+
     let user_id = extract_user_id_optional(&http_req);
     let team_id = extract_team_id_optional(&http_req);
 
@@ -508,6 +514,10 @@ fn calculate_cost(provider: &str, model: &str, prompt_tokens: i32, completion_to
     input_cost + output_cost
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the persistence helper mirrors the immutable metrics row schema"
+)]
 async fn record_metrics(
     pool: &PgPool,
     user_id: Option<Uuid>,

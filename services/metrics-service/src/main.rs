@@ -1,6 +1,5 @@
 use actix_web::{web, App, HttpServer};
 use tracing::{info, Level};
-use tracing_subscriber;
 
 mod config;
 mod handlers;

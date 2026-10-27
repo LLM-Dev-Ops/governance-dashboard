@@ -182,7 +182,6 @@ mod unit_tests {
 
 #[cfg(test)]
 mod contract_tests {
-    use super::*;
 
     /// Test that the agent does NOT enforce policies
     #[test]
@@ -223,7 +222,7 @@ mod contract_tests {
 
         let allowed_persistence = "ruvector-service";
         let forbidden_persistence =
-            vec!["google-sql", "local-file", "local-database", "direct-sql"];
+            ["google-sql", "local-file", "local-database", "direct-sql"];
 
         assert!(!forbidden_persistence.contains(&allowed_persistence));
     }
@@ -281,9 +280,9 @@ mod integration_contract_tests {
         // - telemetry_ref: String (observatory reference)
         // - decision_event: DecisionEvent (persisted to ruvector)
 
-        let expected_response_fields = vec!["assessment", "telemetry_ref"];
+        let expected_response_fields = ["assessment", "telemetry_ref"];
 
-        let expected_assessment_fields = vec![
+        let expected_assessment_fields = [
             "id",
             "change_request_id",
             "impact_level",
@@ -317,12 +316,11 @@ mod integration_contract_tests {
 /// Smoke test helpers - CLI commands that should work
 #[cfg(test)]
 mod smoke_tests {
-    use super::*;
 
     #[test]
     fn test_cli_commands_defined() {
         // These CLI commands should be available
-        let commands = vec![
+        let commands = [
             "change-impact assess",
             "change-impact history",
             "change-impact get",
@@ -343,7 +341,7 @@ mod smoke_tests {
     #[test]
     fn test_api_endpoints_defined() {
         // These API endpoints should be available
-        let endpoints = vec![
+        let endpoints = [
             ("POST", "/api/v1/governance/change-impact"),
             ("POST", "/api/v1/governance/change-impact/simulate"),
             ("GET", "/api/v1/governance/change-impact/history"),
