@@ -2726,6 +2726,7 @@ dependencies = [
  "redis",
  "reqwest 0.12.24",
  "serde",
+ "sha2",
  "serde_json",
  "sqlx",
  "thiserror 1.0.69",

@@ -974,9 +974,13 @@ impl ChangeImpactAgent {
         cost_ops: &CostOpsConsumer,
         input: &ChangeImpactInput,
     ) -> Result<Option<CostImplication>> {
-        // Get current cost summary
+        // Cost summaries require an explicit reporting window. Avoid fabricating
+        // one when the caller has not supplied historical bounds.
+        let Some(range) = input.historical_range.as_ref() else {
+            return Ok(None);
+        };
         let cost_summary = cost_ops
-            .get_cost_summary(&input.organization_id, None)
+            .get_cost_summary(&input.organization_id, &range.start, &range.end)
             .await
             .ok();
 
@@ -1097,8 +1101,8 @@ impl ChangeImpactAgent {
         risks: &[RiskIndicator],
         policy_implications: &[PolicyImplication],
     ) -> f64 {
-        let mut score = 0.0;
-        let mut weight_sum = 0.0;
+        let mut score: f64 = 0.0;
+        let mut weight_sum: f64 = 0.0;
 
         // Impact contribution
         for impact in impacts {
