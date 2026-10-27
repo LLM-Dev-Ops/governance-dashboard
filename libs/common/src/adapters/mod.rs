@@ -17,13 +17,13 @@
 //! The adapter configuration remains local and dependency-free while matching the
 //! retry, cache, and rate-limit concepts exposed by the current `infra` crates.
 
-pub mod policy_engine;
-pub mod registry;
+pub mod analytics_hub;
+pub mod change_impact;
 pub mod cost_ops;
 pub mod observatory;
-pub mod analytics_hub;
+pub mod policy_engine;
+pub mod registry;
 pub mod ruvector;
-pub mod change_impact;
 
 use crate::error::Result;
 use async_trait::async_trait;

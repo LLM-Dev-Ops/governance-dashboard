@@ -22,19 +22,20 @@
 //!
 //! # decision_type: "change_impact_assessment"
 
-use super::ruvector::{
-    create_decision_event, default_confidence, execution_ref_from_request,
-    ConfidenceBand, ConfidenceFactor, ConfidenceImpact, ConstraintApplication,
-    ConstraintScope, ConstraintType, DataReference, DataReferenceType, DateRange,
-    DecisionConfidence, DecisionEvent, DecisionOutputs, ExecutionReference,
-    FindingCategory, GovernanceDecisionType, GovernanceFinding, GovernanceMetrics,
-    GovernanceSeverity, InvocationSource, PersistDecisionResponse, RuVectorConsumer,
-    TrendDirection,
-};
-use super::policy_engine::{PolicyEngineConsumer, PolicyEvaluationResult, ComplianceStatus};
-use super::registry::RegistryConsumer;
 use super::cost_ops::CostOpsConsumer;
-use super::observatory::{ObservatoryConsumer, AgentTelemetryEvent, EmitSpanRequest, SpanStatus, SpanEvent};
+use super::observatory::{
+    AgentTelemetryEvent, EmitSpanRequest, ObservatoryConsumer, SpanEvent, SpanStatus,
+};
+use super::policy_engine::{ComplianceStatus, PolicyEngineConsumer, PolicyEvaluationResult};
+use super::registry::RegistryConsumer;
+use super::ruvector::{
+    create_decision_event, default_confidence, execution_ref_from_request, ConfidenceBand,
+    ConfidenceFactor, ConfidenceImpact, ConstraintApplication, ConstraintScope, ConstraintType,
+    DataReference, DataReferenceType, DateRange, DecisionConfidence, DecisionEvent,
+    DecisionOutputs, ExecutionReference, FindingCategory, GovernanceDecisionType,
+    GovernanceFinding, GovernanceMetrics, GovernanceSeverity, InvocationSource,
+    PersistDecisionResponse, RuVectorConsumer, TrendDirection,
+};
 use super::{EcosystemConsumer, UpstreamConfig};
 use crate::error::{AppError, Result};
 use async_trait::async_trait;
@@ -549,12 +550,8 @@ impl ChangeImpactAgent {
         let policy_engine = policy_engine_config
             .map(PolicyEngineConsumer::new)
             .transpose()?;
-        let registry = registry_config
-            .map(RegistryConsumer::new)
-            .transpose()?;
-        let cost_ops = cost_ops_config
-            .map(CostOpsConsumer::new)
-            .transpose()?;
+        let registry = registry_config.map(RegistryConsumer::new).transpose()?;
+        let cost_ops = cost_ops_config.map(CostOpsConsumer::new).transpose()?;
         let observatory = observatory_config
             .map(ObservatoryConsumer::new)
             .transpose()?;
@@ -620,20 +617,25 @@ impl ChangeImpactAgent {
         );
 
         // Persist to ruvector-service (ONLY authorized persistence mechanism)
-        let persist_response = self.ruvector.persist_decision_event(decision_event.clone()).await?;
+        let persist_response = self
+            .ruvector
+            .persist_decision_event(decision_event.clone())
+            .await?;
 
         // Calculate execution duration
         let execution_duration_ms = start_time.elapsed().as_millis() as f64;
 
         // Emit telemetry to LLM-Observatory (if configured)
-        let telemetry_ref = self.emit_assessment_telemetry(
-            &input,
-            &assessment,
-            &decision_event,
-            &confidence,
-            execution_duration_ms,
-            &execution_context,
-        ).await;
+        let telemetry_ref = self
+            .emit_assessment_telemetry(
+                &input,
+                &assessment,
+                &decision_event,
+                &confidence,
+                execution_duration_ms,
+                &execution_context,
+            )
+            .await;
 
         Ok(ChangeImpactOutput {
             decision_event,
@@ -656,11 +658,7 @@ impl ChangeImpactAgent {
         execution_context: &ExecutionContext,
     ) -> String {
         // Default telemetry reference if Observatory is not configured
-        let default_ref = format!(
-            "observatory://telemetry/{}/{}",
-            AGENT_ID,
-            decision_event.id
-        );
+        let default_ref = format!("observatory://telemetry/{}/{}", AGENT_ID, decision_event.id);
 
         let Some(ref observatory) = self.observatory else {
             return default_ref;
@@ -668,15 +666,42 @@ impl ChangeImpactAgent {
 
         // Build agent telemetry event
         let mut attributes = HashMap::new();
-        attributes.insert("change_id".to_string(), serde_json::json!(input.change_request.change_id));
-        attributes.insert("change_type".to_string(), serde_json::json!(input.change_request.change_type));
-        attributes.insert("subject_type".to_string(), serde_json::json!(input.change_request.subject_type));
-        attributes.insert("subject_id".to_string(), serde_json::json!(input.change_request.subject_id));
-        attributes.insert("impact_level".to_string(), serde_json::json!(assessment.impact_level));
-        attributes.insert("risk_classification".to_string(), serde_json::json!(assessment.risk_classification));
-        attributes.insert("affected_systems_count".to_string(), serde_json::json!(assessment.affected_systems.len()));
-        attributes.insert("policy_implications_count".to_string(), serde_json::json!(assessment.policy_implications.len()));
-        attributes.insert("recommendations_count".to_string(), serde_json::json!(assessment.recommendations.len()));
+        attributes.insert(
+            "change_id".to_string(),
+            serde_json::json!(input.change_request.change_id),
+        );
+        attributes.insert(
+            "change_type".to_string(),
+            serde_json::json!(input.change_request.change_type),
+        );
+        attributes.insert(
+            "subject_type".to_string(),
+            serde_json::json!(input.change_request.subject_type),
+        );
+        attributes.insert(
+            "subject_id".to_string(),
+            serde_json::json!(input.change_request.subject_id),
+        );
+        attributes.insert(
+            "impact_level".to_string(),
+            serde_json::json!(assessment.impact_level),
+        );
+        attributes.insert(
+            "risk_classification".to_string(),
+            serde_json::json!(assessment.risk_classification),
+        );
+        attributes.insert(
+            "affected_systems_count".to_string(),
+            serde_json::json!(assessment.affected_systems.len()),
+        );
+        attributes.insert(
+            "policy_implications_count".to_string(),
+            serde_json::json!(assessment.policy_implications.len()),
+        );
+        attributes.insert(
+            "recommendations_count".to_string(),
+            serde_json::json!(assessment.recommendations.len()),
+        );
 
         if let Some(ref request_id) = execution_context.request_id {
             attributes.insert("request_id".to_string(), serde_json::json!(request_id));
@@ -716,8 +741,14 @@ impl ChangeImpactAgent {
                 timestamp: assessment.assessed_at.clone(),
                 attributes: {
                     let mut attrs = HashMap::new();
-                    attrs.insert("risk_score".to_string(), serde_json::json!(assessment.risk_score));
-                    attrs.insert("impact_level".to_string(), serde_json::json!(assessment.impact_level));
+                    attrs.insert(
+                        "risk_score".to_string(),
+                        serde_json::json!(assessment.risk_score),
+                    );
+                    attrs.insert(
+                        "impact_level".to_string(),
+                        serde_json::json!(assessment.impact_level),
+                    );
                     attrs
                 },
             },
@@ -768,14 +799,22 @@ impl ChangeImpactAgent {
         }
 
         // Cost impact analysis (if requested)
-        if input.scope.as_ref().map_or(false, |s| s.include_cost_impact.unwrap_or(false)) {
+        if input
+            .scope
+            .as_ref()
+            .map_or(false, |s| s.include_cost_impact.unwrap_or(false))
+        {
             if let Some(ref cost_ops) = self.cost_ops {
                 cost_implications = self.analyze_cost_impact(cost_ops, input).await?;
             }
         }
 
         // Compliance impact analysis (if requested)
-        if input.scope.as_ref().map_or(false, |s| s.include_compliance_impact.unwrap_or(false)) {
+        if input
+            .scope
+            .as_ref()
+            .map_or(false, |s| s.include_compliance_impact.unwrap_or(false))
+        {
             let compliance_impact = self.analyze_compliance_impact(input).await?;
             compliance_implications.extend(compliance_impact);
         }
@@ -786,7 +825,8 @@ impl ChangeImpactAgent {
         }
 
         // Calculate overall risk score
-        let risk_score = self.calculate_risk_score(&impacts, &risk_indicators, &policy_implications);
+        let risk_score =
+            self.calculate_risk_score(&impacts, &risk_indicators, &policy_implications);
         let impact_level = ImpactLevel::from_score(risk_score);
         let risk_classification = RiskClassification::from_score(risk_score);
 
@@ -878,8 +918,7 @@ impl ChangeImpactAgent {
                     description: "Policy modification may introduce compliance gaps".to_string(),
                     evidence: vec![format!(
                         "Change type: {:?}, Subject: {}",
-                        input.change_request.change_type,
-                        input.change_request.subject_id
+                        input.change_request.change_type, input.change_request.subject_id
                     )],
                     mitigation_suggestions: vec![
                         "Review policy coverage after change".to_string(),
@@ -891,7 +930,8 @@ impl ChangeImpactAgent {
                 impacts.push(ImpactDetail {
                     area: ImpactArea::ModelBehavior,
                     level: ImpactLevel::High,
-                    description: "Model/provider change may affect output quality and cost".to_string(),
+                    description: "Model/provider change may affect output quality and cost"
+                        .to_string(),
                     affected_entities: vec![input.change_request.subject_id.clone()],
                     metrics: None,
                 });
@@ -900,7 +940,8 @@ impl ChangeImpactAgent {
                     id: Uuid::new_v4().to_string(),
                     category: RiskIndicatorCategory::OperationalRisk,
                     severity: GovernanceSeverity::High,
-                    description: "Model change may affect system behavior and output quality".to_string(),
+                    description: "Model change may affect system behavior and output quality"
+                        .to_string(),
                     evidence: vec![],
                     mitigation_suggestions: vec![
                         "Conduct A/B testing before full rollout".to_string(),
@@ -929,7 +970,9 @@ impl ChangeImpactAgent {
                     ],
                 });
             }
-            ChangeSubjectType::AccessControl | ChangeSubjectType::User | ChangeSubjectType::Team => {
+            ChangeSubjectType::AccessControl
+            | ChangeSubjectType::User
+            | ChangeSubjectType::Team => {
                 impacts.push(ImpactDetail {
                     area: ImpactArea::AccessControl,
                     level: ImpactLevel::High,
@@ -1022,17 +1065,22 @@ impl ChangeImpactAgent {
                     requirement_description: "All policy changes must be audited".to_string(),
                     current_status: ComplianceImpactStatus::Compliant,
                     projected_status: ComplianceImpactStatus::RequiresReview,
-                    gap_description: Some("Policy modification requires compliance review".to_string()),
+                    gap_description: Some(
+                        "Policy modification requires compliance review".to_string(),
+                    ),
                 });
             }
             ChangeSubjectType::AccessControl => {
                 implications.push(ComplianceImplication {
                     framework: "Access Control".to_string(),
                     requirement_id: "AC-002".to_string(),
-                    requirement_description: "Access changes must follow approval workflow".to_string(),
+                    requirement_description: "Access changes must follow approval workflow"
+                        .to_string(),
                     current_status: ComplianceImpactStatus::Compliant,
                     projected_status: ComplianceImpactStatus::RequiresReview,
-                    gap_description: Some("Access modification requires security review".to_string()),
+                    gap_description: Some(
+                        "Access modification requires security review".to_string(),
+                    ),
                 });
             }
             _ => {}
@@ -1284,20 +1332,25 @@ impl ChangeImpactAgent {
                 }));
             }
 
-            let change_refs: Vec<DataReference> = events.items.iter().map(|e| {
-                DataReference {
+            let change_refs: Vec<DataReference> = events
+                .items
+                .iter()
+                .map(|e| DataReference {
                     ref_type: DataReferenceType::DecisionEvent,
                     source_system: "ruvector-service".to_string(),
                     ref_id: e.id.clone(),
                     ref_timestamp: e.timestamp.clone(),
-                }
-            }).collect();
+                })
+                .collect();
 
             Ok(Some(HistoricalContext {
                 similar_changes_count: events.items.len() as u32,
                 average_outcome: HistoricalOutcome::Successful, // Simplified
                 common_issues: vec!["Configuration drift".to_string()],
-                success_patterns: vec!["Staged rollout".to_string(), "Pre-change testing".to_string()],
+                success_patterns: vec![
+                    "Staged rollout".to_string(),
+                    "Pre-change testing".to_string(),
+                ],
                 change_refs,
             }))
         } else {
@@ -1324,7 +1377,12 @@ impl ChangeImpactAgent {
         if self.policy_engine.is_some() {
             completeness += 0.15;
         }
-        if self.cost_ops.is_some() && input.scope.as_ref().map_or(false, |s| s.include_cost_impact.unwrap_or(false)) {
+        if self.cost_ops.is_some()
+            && input
+                .scope
+                .as_ref()
+                .map_or(false, |s| s.include_cost_impact.unwrap_or(false))
+        {
             completeness += 0.15;
         }
         if !assessment.affected_systems.is_empty() {
@@ -1362,13 +1420,21 @@ impl ChangeImpactAgent {
             factors: vec![
                 ConfidenceFactor {
                     factor: "upstream_data_availability".to_string(),
-                    impact: if self.policy_engine.is_some() { ConfidenceImpact::Positive } else { ConfidenceImpact::Negative },
+                    impact: if self.policy_engine.is_some() {
+                        ConfidenceImpact::Positive
+                    } else {
+                        ConfidenceImpact::Negative
+                    },
                     weight: 0.3,
                     description: "Availability of policy engine data".to_string(),
                 },
                 ConfidenceFactor {
                     factor: "historical_data".to_string(),
-                    impact: if assessment.historical_context.is_some() { ConfidenceImpact::Positive } else { ConfidenceImpact::Neutral },
+                    impact: if assessment.historical_context.is_some() {
+                        ConfidenceImpact::Positive
+                    } else {
+                        ConfidenceImpact::Neutral
+                    },
                     weight: 0.2,
                     description: "Historical change data availability".to_string(),
                 },
@@ -1387,7 +1453,11 @@ impl ChangeImpactAgent {
             constraint_type: ConstraintType::OrganizationalBoundary,
             scope: ConstraintScope {
                 organizations: vec![input.organization_id.clone()],
-                teams: input.scope.as_ref().and_then(|s| s.teams.clone()).unwrap_or_default(),
+                teams: input
+                    .scope
+                    .as_ref()
+                    .and_then(|s| s.teams.clone())
+                    .unwrap_or_default(),
                 resource_types: vec![],
                 time_range: input.historical_range.clone(),
             },
@@ -1415,8 +1485,10 @@ impl ChangeImpactAgent {
 
     /// Build decision outputs for the DecisionEvent
     fn build_decision_outputs(&self, assessment: &ChangeImpactAssessment) -> DecisionOutputs {
-        let findings: Vec<GovernanceFinding> = assessment.risk_indicators.iter().map(|r| {
-            GovernanceFinding {
+        let findings: Vec<GovernanceFinding> = assessment
+            .risk_indicators
+            .iter()
+            .map(|r| GovernanceFinding {
                 id: r.id.clone(),
                 category: match r.category {
                     RiskIndicatorCategory::ComplianceRisk => FindingCategory::ComplianceDeviation,
@@ -1432,8 +1504,8 @@ impl ChangeImpactAgent {
                 evidence_refs: r.evidence.clone(),
                 first_detected: assessment.assessed_at.clone(),
                 last_seen: assessment.assessed_at.clone(),
-            }
-        }).collect();
+            })
+            .collect();
 
         let mut findings_by_severity = HashMap::new();
         for finding in &findings {
@@ -1462,15 +1534,21 @@ impl ChangeImpactAgent {
                     TrendDirection::Stable
                 },
             },
-            recommendations: assessment.recommendations.iter().map(|r| r.recommendation.clone()).collect(),
-            data_refs: assessment.affected_systems.iter().map(|s| {
-                DataReference {
+            recommendations: assessment
+                .recommendations
+                .iter()
+                .map(|r| r.recommendation.clone())
+                .collect(),
+            data_refs: assessment
+                .affected_systems
+                .iter()
+                .map(|s| DataReference {
                     ref_type: DataReferenceType::DecisionEvent,
                     source_system: s.system_name.clone(),
                     ref_id: s.system_id.clone(),
                     ref_timestamp: assessment.assessed_at.clone(),
-                }
-            }).collect(),
+                })
+                .collect(),
         }
     }
 }
@@ -1544,12 +1622,30 @@ mod tests {
 
     #[test]
     fn test_risk_classification_from_score() {
-        assert_eq!(RiskClassification::from_score(0.1), RiskClassification::Acceptable);
-        assert_eq!(RiskClassification::from_score(0.25), RiskClassification::LowRisk);
-        assert_eq!(RiskClassification::from_score(0.45), RiskClassification::MediumRisk);
-        assert_eq!(RiskClassification::from_score(0.65), RiskClassification::HighRisk);
-        assert_eq!(RiskClassification::from_score(0.8), RiskClassification::CriticalRisk);
-        assert_eq!(RiskClassification::from_score(0.9), RiskClassification::Unacceptable);
+        assert_eq!(
+            RiskClassification::from_score(0.1),
+            RiskClassification::Acceptable
+        );
+        assert_eq!(
+            RiskClassification::from_score(0.25),
+            RiskClassification::LowRisk
+        );
+        assert_eq!(
+            RiskClassification::from_score(0.45),
+            RiskClassification::MediumRisk
+        );
+        assert_eq!(
+            RiskClassification::from_score(0.65),
+            RiskClassification::HighRisk
+        );
+        assert_eq!(
+            RiskClassification::from_score(0.8),
+            RiskClassification::CriticalRisk
+        );
+        assert_eq!(
+            RiskClassification::from_score(0.9),
+            RiskClassification::Unacceptable
+        );
     }
 
     #[test]

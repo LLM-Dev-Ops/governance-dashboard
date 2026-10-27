@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
@@ -12,7 +12,7 @@ pub struct Config {
 }
 
 fn default_csrf_secret() -> String {
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(b"default_csrf_secret_change_in_production");
     format!("{:x}", hasher.finalize())

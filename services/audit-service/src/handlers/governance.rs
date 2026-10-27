@@ -27,24 +27,24 @@
 //! - Provide oversight signals and dashboards
 
 use actix_web::{get, post, web, HttpResponse, Responder};
-use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use sqlx::PgPool;
 use std::collections::HashMap;
-use tracing::{info, warn, instrument, span, Level};
+use tracing::{info, instrument, span, warn, Level};
+use uuid::Uuid;
 
-use llm_governance_common::{AppError, Result, ApiResponse};
-use llm_governance_common::adapters::ruvector::{
-    RuVectorConsumer, DecisionEvent, GovernanceDecisionType, DecisionOutputs,
-    GovernanceFinding, GovernanceMetrics, DecisionConfidence, ConstraintApplication,
-    ExecutionReference, DataReference, DateRange, GovernanceSeverity, FindingCategory,
-    TrendDirection, InvocationSource, DataReferenceType, ConstraintType, ConstraintScope,
-    create_decision_event, default_confidence, execution_ref_from_request,
-};
 use llm_governance_common::adapters::observatory::ObservatoryConsumer;
+use llm_governance_common::adapters::ruvector::{
+    create_decision_event, default_confidence, execution_ref_from_request, ConstraintApplication,
+    ConstraintScope, ConstraintType, DataReference, DataReferenceType, DateRange,
+    DecisionConfidence, DecisionEvent, DecisionOutputs, ExecutionReference, FindingCategory,
+    GovernanceDecisionType, GovernanceFinding, GovernanceMetrics, GovernanceSeverity,
+    InvocationSource, RuVectorConsumer, TrendDirection,
+};
 use llm_governance_common::adapters::UpstreamConfig;
+use llm_governance_common::{ApiResponse, AppError, Result};
 
 // ============================================================================
 // Agent Constants
@@ -189,7 +189,10 @@ pub async fn generate_governance_audit(
     );
     let _enter = span.enter();
 
-    info!("Starting governance audit for organization: {}", req.organization_id);
+    info!(
+        "Starting governance audit for organization: {}",
+        req.organization_id
+    );
 
     // Parse audit type
     let decision_type = parse_decision_type(&req.audit_type)?;
@@ -206,21 +209,19 @@ pub async fn generate_governance_audit(
         &req.from,
         &req.to,
         req.scope.as_ref(),
-    ).await?;
+    )
+    .await?;
 
     // Step 2: Analyze policy adherence
-    let policy_analysis = analyze_policy_adherence(
-        pool.get_ref(),
-        &req.organization_id,
-        &req.from,
-        &req.to,
-    ).await?;
+    let policy_analysis =
+        analyze_policy_adherence(pool.get_ref(), &req.organization_id, &req.from, &req.to).await?;
 
     // Step 3: Generate findings
     let findings = generate_findings(&audit_data, &policy_analysis, req.include_details);
 
     // Step 4: Calculate metrics
-    let metrics = calculate_governance_metrics(&audit_data, &policy_analysis, &findings, &req.from, &req.to);
+    let metrics =
+        calculate_governance_metrics(&audit_data, &policy_analysis, &findings, &req.from, &req.to);
 
     // Step 5: Calculate confidence
     let confidence = calculate_confidence(&audit_data, &policy_analysis);
@@ -273,7 +274,11 @@ pub async fn generate_governance_audit(
     // Generate artifact reference
     let artifact_ref = format!("artifact:audit:{}:{}", req.organization_id, event_id);
 
-    info!("Governance audit completed: event_id={}, findings={}", event_id, findings.len());
+    info!(
+        "Governance audit completed: event_id={}, findings={}",
+        event_id,
+        findings.len()
+    );
 
     // Step 12: Build response
     let response = GovernanceAuditResponse {
@@ -290,20 +295,34 @@ pub async fn generate_governance_audit(
             policies_evaluated: metrics.policies_evaluated,
             compliance_rate: metrics.compliance_rate,
             findings_by_severity: metrics.findings_by_severity.clone(),
-            trend: serde_json::to_string(&metrics.trend).unwrap_or_default().trim_matches('"').to_string(),
+            trend: serde_json::to_string(&metrics.trend)
+                .unwrap_or_default()
+                .trim_matches('"')
+                .to_string(),
         },
         findings_count: findings.len() as u32,
         findings: if req.include_details {
-            Some(findings.iter().map(|f| GovernanceFindingResponse {
-                id: f.id.clone(),
-                category: serde_json::to_string(&f.category).unwrap_or_default().trim_matches('"').to_string(),
-                severity: serde_json::to_string(&f.severity).unwrap_or_default().trim_matches('"').to_string(),
-                title: f.title.clone(),
-                description: f.description.clone(),
-                affected_resources: f.affected_resources.clone(),
-                first_detected: f.first_detected.clone(),
-                last_seen: f.last_seen.clone(),
-            }).collect())
+            Some(
+                findings
+                    .iter()
+                    .map(|f| GovernanceFindingResponse {
+                        id: f.id.clone(),
+                        category: serde_json::to_string(&f.category)
+                            .unwrap_or_default()
+                            .trim_matches('"')
+                            .to_string(),
+                        severity: serde_json::to_string(&f.severity)
+                            .unwrap_or_default()
+                            .trim_matches('"')
+                            .to_string(),
+                        title: f.title.clone(),
+                        description: f.description.clone(),
+                        affected_resources: f.affected_resources.clone(),
+                        first_detected: f.first_detected.clone(),
+                        last_seen: f.last_seen.clone(),
+                    })
+                    .collect(),
+            )
         } else {
             None
         },
@@ -342,7 +361,7 @@ pub async fn list_governance_audits(
         AND details->>'organization_id' = $1
         ORDER BY timestamp DESC
         LIMIT $2 OFFSET $3
-        "#
+        "#,
     )
     .bind(&query.organization_id)
     .bind(limit as i64)
@@ -350,18 +369,20 @@ pub async fn list_governance_audits(
     .fetch_all(pool.get_ref())
     .await?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "audits": audits.iter().map(|(id, ts, action, details)| {
-            serde_json::json!({
-                "id": id,
-                "timestamp": ts,
-                "action": action,
-                "details": details
-            })
-        }).collect::<Vec<_>>(),
-        "limit": limit,
-        "offset": offset
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "audits": audits.iter().map(|(id, ts, action, details)| {
+                serde_json::json!({
+                    "id": id,
+                    "timestamp": ts,
+                    "action": action,
+                    "details": details
+                })
+            }).collect::<Vec<_>>(),
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
 }
 
 /// Inspect a specific governance audit
@@ -380,19 +401,21 @@ pub async fn get_governance_audit(
         FROM audit_logs
         WHERE resource_type = 'governance_audit'
         AND (id::text = $1 OR details->>'event_id' = $1)
-        "#
+        "#,
     )
     .bind(audit_id.as_str())
     .fetch_optional(pool.get_ref())
     .await?
     .ok_or_else(|| AppError::NotFound("Governance audit not found".to_string()))?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "id": audit.0,
-        "timestamp": audit.1,
-        "action": audit.2,
-        "details": audit.3
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "id": audit.0,
+            "timestamp": audit.1,
+            "action": audit.2,
+            "details": audit.3
+        }))),
+    )
 }
 
 /// Summarize current governance state
@@ -412,16 +435,15 @@ pub async fn summarize_governance(
     let to = chrono::Utc::now().to_rfc3339();
 
     // Aggregate summary data
-    let total_actions: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2"
-    )
-    .bind(&from)
-    .bind(&to)
-    .fetch_one(pool.get_ref())
-    .await?;
+    let total_actions: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2")
+            .bind(&from)
+            .bind(&to)
+            .fetch_one(pool.get_ref())
+            .await?;
 
     let unique_users: (i64,) = sqlx::query_as(
-        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2"
+        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2",
     )
     .bind(&from)
     .bind(&to)
@@ -437,24 +459,26 @@ pub async fn summarize_governance(
     .await
     .unwrap_or((0,));
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "organization_id": query.organization_id,
-        "period": {
-            "from": from,
-            "to": to,
-            "days": period_days
-        },
-        "summary": {
-            "total_audit_events": total_actions.0,
-            "unique_users": unique_users.0,
-            "policy_evaluations": policy_evaluations.0,
-            "governance_status": determine_governance_status(total_actions.0, unique_users.0)
-        },
-        "agent": {
-            "id": AGENT_ID,
-            "version": AGENT_VERSION
-        }
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "organization_id": query.organization_id,
+            "period": {
+                "from": from,
+                "to": to,
+                "days": period_days
+            },
+            "summary": {
+                "total_audit_events": total_actions.0,
+                "unique_users": unique_users.0,
+                "policy_evaluations": policy_evaluations.0,
+                "governance_status": determine_governance_status(total_actions.0, unique_users.0)
+            },
+            "agent": {
+                "id": AGENT_ID,
+                "version": AGENT_VERSION
+            }
+        }))),
+    )
 }
 
 /// Get agent registration metadata
@@ -540,13 +564,12 @@ async fn aggregate_audit_data(
     scope: Option<&AuditScopeRequest>,
 ) -> Result<AuditDataAggregate> {
     // Get total events count
-    let total: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2"
-    )
-    .bind(from)
-    .bind(to)
-    .fetch_one(pool)
-    .await?;
+    let total: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2")
+            .bind(from)
+            .bind(to)
+            .fetch_one(pool)
+            .await?;
 
     // Get events by action
     let actions = sqlx::query_as::<_, (String, i64)>(
@@ -557,10 +580,8 @@ async fn aggregate_audit_data(
     .fetch_all(pool)
     .await?;
 
-    let events_by_action: HashMap<String, u64> = actions
-        .into_iter()
-        .map(|(k, v)| (k, v as u64))
-        .collect();
+    let events_by_action: HashMap<String, u64> =
+        actions.into_iter().map(|(k, v)| (k, v as u64)).collect();
 
     // Get events by resource type
     let resources = sqlx::query_as::<_, (String, i64)>(
@@ -571,14 +592,12 @@ async fn aggregate_audit_data(
     .fetch_all(pool)
     .await?;
 
-    let events_by_resource: HashMap<String, u64> = resources
-        .into_iter()
-        .map(|(k, v)| (k, v as u64))
-        .collect();
+    let events_by_resource: HashMap<String, u64> =
+        resources.into_iter().map(|(k, v)| (k, v as u64)).collect();
 
     // Get unique users
     let unique_users: (i64,) = sqlx::query_as(
-        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2"
+        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp >= $1 AND timestamp <= $2",
     )
     .bind(from)
     .bind(to)
@@ -628,7 +647,9 @@ async fn analyze_policy_adherence(
     .unwrap_or((0,));
 
     let total = policy_events.0.max(1) as f64;
-    let compliance_rate = ((total - violations.0 as f64) / total * 100.0).max(0.0).min(100.0);
+    let compliance_rate = ((total - violations.0 as f64) / total * 100.0)
+        .max(0.0)
+        .min(100.0);
 
     Ok(PolicyAnalysis {
         policies_evaluated: policy_events.0 as u32,
@@ -681,7 +702,10 @@ fn generate_findings(
             } else {
                 GovernanceSeverity::Medium
             },
-            title: format!("Compliance rate below target: {:.1}%", policy_analysis.compliance_rate),
+            title: format!(
+                "Compliance rate below target: {:.1}%",
+                policy_analysis.compliance_rate
+            ),
             description: format!(
                 "The current compliance rate of {:.1}% is below the target threshold of 95%.",
                 policy_analysis.compliance_rate
@@ -741,7 +765,10 @@ fn calculate_governance_metrics(
         policies_evaluated: policy_analysis.policies_evaluated,
         compliance_rate: policy_analysis.compliance_rate,
         findings_by_severity,
-        trend: determine_trend(policy_analysis.compliance_rate, policy_analysis.violations_found),
+        trend: determine_trend(
+            policy_analysis.compliance_rate,
+            policy_analysis.violations_found,
+        ),
     }
 }
 
@@ -757,16 +784,26 @@ fn determine_trend(compliance_rate: f64, violations: u32) -> TrendDirection {
     }
 }
 
-fn calculate_confidence(audit_data: &AuditDataAggregate, policy_analysis: &PolicyAnalysis) -> DecisionConfidence {
+fn calculate_confidence(
+    audit_data: &AuditDataAggregate,
+    policy_analysis: &PolicyAnalysis,
+) -> DecisionConfidence {
     let completeness = audit_data.time_range_coverage;
-    let certainty = if audit_data.total_events > 100 { 0.9 }
-        else if audit_data.total_events > 10 { 0.7 }
-        else { 0.5 };
+    let certainty = if audit_data.total_events > 100 {
+        0.9
+    } else if audit_data.total_events > 10 {
+        0.7
+    } else {
+        0.5
+    };
 
     default_confidence(completeness, certainty)
 }
 
-fn generate_recommendations(findings: &[GovernanceFinding], metrics: &GovernanceMetrics) -> Vec<String> {
+fn generate_recommendations(
+    findings: &[GovernanceFinding],
+    metrics: &GovernanceMetrics,
+) -> Vec<String> {
     let mut recommendations = Vec::new();
 
     // Based on compliance rate
@@ -778,8 +815,14 @@ fn generate_recommendations(findings: &[GovernanceFinding], metrics: &Governance
     }
 
     // Based on findings
-    let high_severity_count = findings.iter()
-        .filter(|f| matches!(f.severity, GovernanceSeverity::High | GovernanceSeverity::Critical))
+    let high_severity_count = findings
+        .iter()
+        .filter(|f| {
+            matches!(
+                f.severity,
+                GovernanceSeverity::High | GovernanceSeverity::Critical
+            )
+        })
         .count();
 
     if high_severity_count > 0 {
@@ -791,11 +834,16 @@ fn generate_recommendations(findings: &[GovernanceFinding], metrics: &Governance
 
     // Based on coverage
     if metrics.coverage_percentage < 100.0 {
-        recommendations.push("Investigate gaps in audit coverage and ensure all systems emit audit events".to_string());
+        recommendations.push(
+            "Investigate gaps in audit coverage and ensure all systems emit audit events"
+                .to_string(),
+        );
     }
 
     if recommendations.is_empty() {
-        recommendations.push("Governance posture is healthy. Continue monitoring and periodic audits.".to_string());
+        recommendations.push(
+            "Governance posture is healthy. Continue monitoring and periodic audits.".to_string(),
+        );
     }
 
     recommendations
@@ -811,8 +859,16 @@ fn build_constraints_record(req: &GovernanceAuditRequest) -> Vec<ConstraintAppli
         constraint_type: ConstraintType::DataRetention,
         scope: ConstraintScope {
             organizations: vec![req.organization_id.clone()],
-            teams: req.scope.as_ref().and_then(|s| s.teams.clone()).unwrap_or_default(),
-            resource_types: req.scope.as_ref().and_then(|s| s.resource_types.clone()).unwrap_or_default(),
+            teams: req
+                .scope
+                .as_ref()
+                .and_then(|s| s.teams.clone())
+                .unwrap_or_default(),
+            resource_types: req
+                .scope
+                .as_ref()
+                .and_then(|s| s.resource_types.clone())
+                .unwrap_or_default(),
             time_range: Some(DateRange {
                 start: req.from.clone(),
                 end: req.to.clone(),
@@ -843,25 +899,43 @@ fn build_constraints_record(req: &GovernanceAuditRequest) -> Vec<ConstraintAppli
 fn build_data_references(audit_data: &AuditDataAggregate) -> Vec<DataReference> {
     let now = chrono::Utc::now().to_rfc3339();
 
-    vec![
-        DataReference {
-            ref_type: DataReferenceType::Telemetry,
-            source_system: "audit-service".to_string(),
-            ref_id: "audit_logs".to_string(),
-            ref_timestamp: now.clone(),
-        },
-    ]
+    vec![DataReference {
+        ref_type: DataReferenceType::Telemetry,
+        source_system: "audit-service".to_string(),
+        ref_id: "audit_logs".to_string(),
+        ref_timestamp: now.clone(),
+    }]
 }
 
 fn generate_summary(metrics: &GovernanceMetrics, findings: &[GovernanceFinding]) -> String {
     let severity_summary = if findings.is_empty() {
         "No findings detected.".to_string()
     } else {
-        let critical = findings.iter().filter(|f| matches!(f.severity, GovernanceSeverity::Critical)).count();
-        let high = findings.iter().filter(|f| matches!(f.severity, GovernanceSeverity::High)).count();
-        let medium = findings.iter().filter(|f| matches!(f.severity, GovernanceSeverity::Medium)).count();
-        let low = findings.iter().filter(|f| matches!(f.severity, GovernanceSeverity::Low | GovernanceSeverity::Info)).count();
-        format!("Findings: {} critical, {} high, {} medium, {} low/info.", critical, high, medium, low)
+        let critical = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::Critical))
+            .count();
+        let high = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::High))
+            .count();
+        let medium = findings
+            .iter()
+            .filter(|f| matches!(f.severity, GovernanceSeverity::Medium))
+            .count();
+        let low = findings
+            .iter()
+            .filter(|f| {
+                matches!(
+                    f.severity,
+                    GovernanceSeverity::Low | GovernanceSeverity::Info
+                )
+            })
+            .count();
+        format!(
+            "Findings: {} critical, {} high, {} medium, {} low/info.",
+            critical, high, medium, low
+        )
     };
 
     format!(

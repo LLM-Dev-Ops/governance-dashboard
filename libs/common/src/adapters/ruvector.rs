@@ -355,7 +355,10 @@ impl RuVectorConsumer {
     ///
     /// This is an async, non-blocking write with exactly-once semantics.
     /// The idempotency_key ensures duplicate writes are safely ignored.
-    pub async fn persist_decision_event(&self, event: DecisionEvent) -> Result<PersistDecisionResponse> {
+    pub async fn persist_decision_event(
+        &self,
+        event: DecisionEvent,
+    ) -> Result<PersistDecisionResponse> {
         let idempotency_key = self.generate_idempotency_key(&event);
 
         let request = PersistDecisionRequest {

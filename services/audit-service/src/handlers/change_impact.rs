@@ -37,32 +37,32 @@
 //! - Generate recommendations (read-only, informational)
 
 use actix_web::{get, post, web, HttpResponse, Responder};
-use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use sha2::{Sha256, Digest};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use sqlx::PgPool;
 use std::collections::HashMap;
-use tracing::{info, warn, instrument, span, Level};
+use tracing::{info, instrument, span, warn, Level};
+use uuid::Uuid;
 
-use llm_governance_common::{AppError, Result, ApiResponse};
-use llm_governance_common::adapters::ruvector::{
-    RuVectorConsumer, DecisionEvent, GovernanceDecisionType, DecisionOutputs,
-    GovernanceFinding, GovernanceMetrics, DecisionConfidence, ConstraintApplication,
-    ExecutionReference, DataReference, DateRange, GovernanceSeverity, FindingCategory,
-    TrendDirection, InvocationSource, DataReferenceType, ConstraintType, ConstraintScope,
-    create_decision_event, default_confidence, execution_ref_from_request,
-};
 use llm_governance_common::adapters::change_impact::{
-    ChangeImpactAgent, ChangeImpactInput, ChangeImpactOutput, ChangeRequest,
-    ChangeType, ChangeSubjectType, ChangeImpactScope, ChangeImpactAssessment,
-    ImpactLevel, RiskClassification, ImpactDetail, ImpactArea, AffectedSystem,
-    PolicyImplication, PolicyImplicationType, ComplianceImplication, ComplianceImpactStatus,
-    CostImplication, RiskIndicator, RiskIndicatorCategory, ImpactRecommendation,
-    RecommendationPriority, RecommendationType, HistoricalContext, HistoricalOutcome,
-    ExecutionContext, AGENT_ID, AGENT_VERSION,
+    AffectedSystem, ChangeImpactAgent, ChangeImpactAssessment, ChangeImpactInput,
+    ChangeImpactOutput, ChangeImpactScope, ChangeRequest, ChangeSubjectType, ChangeType,
+    ComplianceImpactStatus, ComplianceImplication, CostImplication, ExecutionContext,
+    HistoricalContext, HistoricalOutcome, ImpactArea, ImpactDetail, ImpactLevel,
+    ImpactRecommendation, PolicyImplication, PolicyImplicationType, RecommendationPriority,
+    RecommendationType, RiskClassification, RiskIndicator, RiskIndicatorCategory, AGENT_ID,
+    AGENT_VERSION,
+};
+use llm_governance_common::adapters::ruvector::{
+    create_decision_event, default_confidence, execution_ref_from_request, ConstraintApplication,
+    ConstraintScope, ConstraintType, DataReference, DataReferenceType, DateRange,
+    DecisionConfidence, DecisionEvent, DecisionOutputs, ExecutionReference, FindingCategory,
+    GovernanceDecisionType, GovernanceFinding, GovernanceMetrics, GovernanceSeverity,
+    InvocationSource, RuVectorConsumer, TrendDirection,
 };
 use llm_governance_common::adapters::UpstreamConfig;
+use llm_governance_common::{ApiResponse, AppError, Result};
 
 // ============================================================================
 // Request/Response Types
@@ -87,7 +87,9 @@ pub struct ChangeImpactRequest {
     pub historical_range: Option<DateRangeInput>,
 }
 
-fn default_true() -> bool { true }
+fn default_true() -> bool {
+    true
+}
 
 /// Change request input from API
 #[derive(Debug, Deserialize, Serialize)]
@@ -302,8 +304,7 @@ async fn assess_change_impact_impl(
 
     info!(
         "Assessing change impact for organization: {}, change: {}",
-        req.organization_id,
-        req.change_request.change_id
+        req.organization_id, req.change_request.change_id
     );
 
     // Parse change type
@@ -316,7 +317,10 @@ async fn assess_change_impact_impl(
     let invoker = extract_invoker(&http_req);
 
     // Build internal input
-    let timestamp = req.change_request.timestamp.clone()
+    let timestamp = req
+        .change_request
+        .timestamp
+        .clone()
         .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     let change_request = ChangeRequest {
@@ -343,21 +347,26 @@ async fn assess_change_impact_impl(
     };
 
     // Step 3: Analyze policy implications
-    let policy_implications = analyze_policy_implications(
-        pool.get_ref(),
-        &req.organization_id,
-        &change_request,
-    ).await?;
+    let policy_implications =
+        analyze_policy_implications(pool.get_ref(), &req.organization_id, &change_request).await?;
 
     // Step 4: Analyze compliance implications (if requested)
-    let compliance_implications = if req.scope.as_ref().map_or(false, |s| s.include_compliance_impact.unwrap_or(false)) {
+    let compliance_implications = if req
+        .scope
+        .as_ref()
+        .map_or(false, |s| s.include_compliance_impact.unwrap_or(false))
+    {
         analyze_compliance_implications(&change_request).await?
     } else {
         Vec::new()
     };
 
     // Step 5: Analyze cost implications (if requested)
-    let cost_implications = if req.scope.as_ref().map_or(false, |s| s.include_cost_impact.unwrap_or(false)) {
+    let cost_implications = if req
+        .scope
+        .as_ref()
+        .map_or(false, |s| s.include_cost_impact.unwrap_or(false))
+    {
         analyze_cost_implications(pool.get_ref(), &req.organization_id, &change_request).await?
     } else {
         None
@@ -447,8 +456,7 @@ async fn assess_change_impact_impl(
 
     info!(
         "Change impact assessment completed: event_id={}, risk_classification={:?}",
-        event_id,
-        risk_classification
+        event_id, risk_classification
     );
 
     // Step 17: Build response
@@ -465,66 +473,88 @@ async fn assess_change_impact_impl(
             risk_score,
             risk_classification: format!("{:?}", risk_classification).to_lowercase(),
             summary,
-            impacts: impacts.iter().map(|i| ImpactDetailResponse {
-                area: format!("{:?}", i.area).to_lowercase(),
-                level: format!("{:?}", i.level).to_lowercase(),
-                description: i.description.clone(),
-                affected_entities: i.affected_entities.clone(),
-                metrics: i.metrics.clone(),
-            }).collect(),
-            affected_systems: affected_systems.iter().map(|s| AffectedSystemResponse {
-                system_id: s.system_id.clone(),
-                system_name: s.system_name.clone(),
-                system_type: s.system_type.clone(),
-                impact_description: s.impact_description.clone(),
-                severity: format!("{:?}", s.severity).to_lowercase(),
-                dependencies: s.dependencies.clone(),
-            }).collect(),
-            policy_implications: policy_implications.iter().map(|p| PolicyImplicationResponse {
-                policy_id: p.policy_id.clone(),
-                policy_name: p.policy_name.clone(),
-                implication_type: format!("{:?}", p.implication_type).to_lowercase(),
-                description: p.description.clone(),
-                affected_rules: p.affected_rules.clone(),
-                policy_remains_valid: p.policy_remains_valid,
-            }).collect(),
-            compliance_implications: compliance_implications.iter().map(|c| ComplianceImplicationResponse {
-                framework: c.framework.clone(),
-                requirement_id: c.requirement_id.clone(),
-                requirement_description: c.requirement_description.clone(),
-                current_status: format!("{:?}", c.current_status).to_lowercase(),
-                projected_status: format!("{:?}", c.projected_status).to_lowercase(),
-                gap_description: c.gap_description.clone(),
-            }).collect(),
+            impacts: impacts
+                .iter()
+                .map(|i| ImpactDetailResponse {
+                    area: format!("{:?}", i.area).to_lowercase(),
+                    level: format!("{:?}", i.level).to_lowercase(),
+                    description: i.description.clone(),
+                    affected_entities: i.affected_entities.clone(),
+                    metrics: i.metrics.clone(),
+                })
+                .collect(),
+            affected_systems: affected_systems
+                .iter()
+                .map(|s| AffectedSystemResponse {
+                    system_id: s.system_id.clone(),
+                    system_name: s.system_name.clone(),
+                    system_type: s.system_type.clone(),
+                    impact_description: s.impact_description.clone(),
+                    severity: format!("{:?}", s.severity).to_lowercase(),
+                    dependencies: s.dependencies.clone(),
+                })
+                .collect(),
+            policy_implications: policy_implications
+                .iter()
+                .map(|p| PolicyImplicationResponse {
+                    policy_id: p.policy_id.clone(),
+                    policy_name: p.policy_name.clone(),
+                    implication_type: format!("{:?}", p.implication_type).to_lowercase(),
+                    description: p.description.clone(),
+                    affected_rules: p.affected_rules.clone(),
+                    policy_remains_valid: p.policy_remains_valid,
+                })
+                .collect(),
+            compliance_implications: compliance_implications
+                .iter()
+                .map(|c| ComplianceImplicationResponse {
+                    framework: c.framework.clone(),
+                    requirement_id: c.requirement_id.clone(),
+                    requirement_description: c.requirement_description.clone(),
+                    current_status: format!("{:?}", c.current_status).to_lowercase(),
+                    projected_status: format!("{:?}", c.projected_status).to_lowercase(),
+                    gap_description: c.gap_description.clone(),
+                })
+                .collect(),
             cost_implications: cost_implications.map(|c| CostImplicationResponse {
                 estimated_delta: c.estimated_delta,
                 currency: c.currency,
                 period: c.period,
                 confidence: c.confidence,
-                breakdown: c.breakdown.iter().map(|b| CostBreakdownResponse {
-                    category: b.category.clone(),
-                    current_cost: b.current_cost,
-                    projected_cost: b.projected_cost,
-                    delta: b.delta,
-                }).collect(),
+                breakdown: c
+                    .breakdown
+                    .iter()
+                    .map(|b| CostBreakdownResponse {
+                        category: b.category.clone(),
+                        current_cost: b.current_cost,
+                        projected_cost: b.projected_cost,
+                        delta: b.delta,
+                    })
+                    .collect(),
                 budget_alerts_triggered: c.budget_alerts_triggered,
             }),
-            risk_indicators: risk_indicators.iter().map(|r| RiskIndicatorResponse {
-                id: r.id.clone(),
-                category: format!("{:?}", r.category).to_lowercase(),
-                severity: format!("{:?}", r.severity).to_lowercase(),
-                description: r.description.clone(),
-                evidence: r.evidence.clone(),
-                mitigation_suggestions: r.mitigation_suggestions.clone(),
-            }).collect(),
-            recommendations: recommendations.iter().map(|r| RecommendationResponse {
-                id: r.id.clone(),
-                priority: format!("{:?}", r.priority).to_lowercase(),
-                recommendation_type: format!("{:?}", r.recommendation_type).to_lowercase(),
-                recommendation: r.recommendation.clone(),
-                rationale: r.rationale.clone(),
-                related_risks: r.related_risks.clone(),
-            }).collect(),
+            risk_indicators: risk_indicators
+                .iter()
+                .map(|r| RiskIndicatorResponse {
+                    id: r.id.clone(),
+                    category: format!("{:?}", r.category).to_lowercase(),
+                    severity: format!("{:?}", r.severity).to_lowercase(),
+                    description: r.description.clone(),
+                    evidence: r.evidence.clone(),
+                    mitigation_suggestions: r.mitigation_suggestions.clone(),
+                })
+                .collect(),
+            recommendations: recommendations
+                .iter()
+                .map(|r| RecommendationResponse {
+                    id: r.id.clone(),
+                    priority: format!("{:?}", r.priority).to_lowercase(),
+                    recommendation_type: format!("{:?}", r.recommendation_type).to_lowercase(),
+                    recommendation: r.recommendation.clone(),
+                    rationale: r.rationale.clone(),
+                    related_risks: r.related_risks.clone(),
+                })
+                .collect(),
             historical_context: historical_context.map(|h| HistoricalContextResponse {
                 similar_changes_count: h.similar_changes_count,
                 average_outcome: format!("{:?}", h.average_outcome).to_lowercase(),
@@ -558,8 +588,7 @@ pub async fn simulate_change_impact(
     // The difference is only in the metadata (marked as simulation)
     info!(
         "Simulating change impact for organization: {}, change: {}",
-        req.organization_id,
-        req.change_request.change_id
+        req.organization_id, req.change_request.change_id
     );
 
     // Call the same handler - the difference is semantic and in metadata
@@ -587,7 +616,7 @@ pub async fn list_change_impact_assessments(
         AND details->>'organization_id' = $1
         ORDER BY timestamp DESC
         LIMIT $2 OFFSET $3
-        "#
+        "#,
     )
     .bind(&query.organization_id)
     .bind(limit as i64)
@@ -608,12 +637,14 @@ pub async fn list_change_impact_assessments(
         })
     }).collect();
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "assessments": response_assessments,
-        "total": response_assessments.len(),
-        "limit": limit,
-        "offset": offset
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "assessments": response_assessments,
+            "total": response_assessments.len(),
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
 }
 
 /// Get specific change impact assessment
@@ -631,18 +662,20 @@ pub async fn get_change_impact_assessment(
         FROM audit_logs
         WHERE resource_type = 'change_impact_assessment'
         AND (id::text = $1 OR details->>'event_id' = $1 OR details->>'assessment_id' = $1)
-        "#
+        "#,
     )
     .bind(assessment_id.as_str())
     .fetch_optional(pool.get_ref())
     .await?
     .ok_or_else(|| AppError::NotFound("Change impact assessment not found".to_string()))?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "id": assessment.0,
-        "timestamp": assessment.1,
-        "details": assessment.2
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "id": assessment.0,
+            "timestamp": assessment.1,
+            "details": assessment.2
+        }))),
+    )
 }
 
 /// Get Change Impact Agent registration metadata
@@ -761,7 +794,7 @@ async fn analyze_impact_areas(
         ChangeSubjectType::Configuration | ChangeSubjectType::Integration => {
             (ImpactArea::DataGovernance, ImpactLevel::Low)
         }
-        _ => (ImpactArea::DataGovernance, ImpactLevel::Minimal)
+        _ => (ImpactArea::DataGovernance, ImpactLevel::Minimal),
     };
 
     impacts.push(ImpactDetail {
@@ -769,9 +802,7 @@ async fn analyze_impact_areas(
         level: primary_level,
         description: format!(
             "{:?} change to {} '{}'",
-            change.change_type,
-            change.subject_type,
-            change.subject_id
+            change.change_type, change.subject_type, change.subject_id
         ),
         affected_entities: vec![change.subject_id.clone()],
         metrics: None,
@@ -936,7 +967,7 @@ async fn analyze_cost_implications(
                 budget_alerts_triggered: vec![],
             }))
         }
-        _ => Ok(None)
+        _ => Ok(None),
     }
 }
 
@@ -953,7 +984,9 @@ fn generate_risk_indicators(
             indicators.push(RiskIndicator {
                 id: Uuid::new_v4().to_string(),
                 category: match impact.area {
-                    ImpactArea::Security | ImpactArea::AccessControl => RiskIndicatorCategory::SecurityRisk,
+                    ImpactArea::Security | ImpactArea::AccessControl => {
+                        RiskIndicatorCategory::SecurityRisk
+                    }
                     ImpactArea::Compliance => RiskIndicatorCategory::ComplianceRisk,
                     ImpactArea::Cost => RiskIndicatorCategory::FinancialRisk,
                     _ => RiskIndicatorCategory::OperationalRisk,
@@ -963,8 +996,15 @@ fn generate_risk_indicators(
                     ImpactLevel::High => GovernanceSeverity::High,
                     _ => GovernanceSeverity::Medium,
                 },
-                description: format!("High impact detected in {}: {}", format!("{:?}", impact.area), impact.description),
-                evidence: vec![format!("Change: {:?} on {}", change.change_type, change.subject_id)],
+                description: format!(
+                    "High impact detected in {}: {}",
+                    format!("{:?}", impact.area),
+                    impact.description
+                ),
+                evidence: vec![format!(
+                    "Change: {:?} on {}",
+                    change.change_type, change.subject_id
+                )],
                 mitigation_suggestions: vec![
                     "Review change with stakeholders".to_string(),
                     "Consider staged rollout".to_string(),
@@ -1025,11 +1065,19 @@ fn calculate_risk_score(
     }
 
     for implication in policy_implications {
-        score += if !implication.policy_remains_valid { 0.8 } else { 0.2 };
+        score += if !implication.policy_remains_valid {
+            0.8
+        } else {
+            0.2
+        };
         count += 1;
     }
 
-    if count > 0 { (score / count as f64).min(1.0) } else { 0.0 }
+    if count > 0 {
+        (score / count as f64).min(1.0)
+    } else {
+        0.0
+    }
 }
 
 fn generate_recommendations_from_analysis(
@@ -1111,7 +1159,10 @@ async fn get_historical_context(
         similar_changes_count: 0,
         average_outcome: HistoricalOutcome::InsufficientData,
         common_issues: vec![],
-        success_patterns: vec!["Staged rollout".to_string(), "Pre-change testing".to_string()],
+        success_patterns: vec![
+            "Staged rollout".to_string(),
+            "Pre-change testing".to_string(),
+        ],
         change_refs: vec![],
     }))
 }
@@ -1174,7 +1225,11 @@ fn build_constraints(req: &ChangeImpactRequest) -> Vec<ConstraintApplication> {
             constraint_type: ConstraintType::OrganizationalBoundary,
             scope: ConstraintScope {
                 organizations: vec![req.organization_id.clone()],
-                teams: req.scope.as_ref().and_then(|s| s.teams.clone()).unwrap_or_default(),
+                teams: req
+                    .scope
+                    .as_ref()
+                    .and_then(|s| s.teams.clone())
+                    .unwrap_or_default(),
                 resource_types: vec![],
                 time_range: req.historical_range.as_ref().map(|r| DateRange {
                     start: r.start.clone(),
@@ -1208,8 +1263,9 @@ fn build_decision_outputs(
     affected_systems: &[AffectedSystem],
     assessed_at: &str,
 ) -> DecisionOutputs {
-    let findings: Vec<GovernanceFinding> = risk_indicators.iter().map(|r| {
-        GovernanceFinding {
+    let findings: Vec<GovernanceFinding> = risk_indicators
+        .iter()
+        .map(|r| GovernanceFinding {
             id: r.id.clone(),
             category: match r.category {
                 RiskIndicatorCategory::ComplianceRisk => FindingCategory::ComplianceDeviation,
@@ -1225,8 +1281,8 @@ fn build_decision_outputs(
             evidence_refs: r.evidence.clone(),
             first_detected: assessed_at.to_string(),
             last_seen: assessed_at.to_string(),
-        }
-    }).collect();
+        })
+        .collect();
 
     let mut findings_by_severity = HashMap::new();
     for finding in &findings {
@@ -1249,15 +1305,19 @@ fn build_decision_outputs(
             findings_by_severity,
             trend: TrendDirection::Stable,
         },
-        recommendations: recommendations.iter().map(|r| r.recommendation.clone()).collect(),
-        data_refs: affected_systems.iter().map(|s| {
-            DataReference {
+        recommendations: recommendations
+            .iter()
+            .map(|r| r.recommendation.clone())
+            .collect(),
+        data_refs: affected_systems
+            .iter()
+            .map(|s| DataReference {
                 ref_type: DataReferenceType::DecisionEvent,
                 source_system: s.system_name.clone(),
                 ref_id: s.system_id.clone(),
                 ref_timestamp: assessed_at.to_string(),
-            }
-        }).collect(),
+            })
+            .collect(),
     }
 }
 

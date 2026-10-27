@@ -13,17 +13,15 @@ use middleware::CsrfProtection;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
 
     info!("Starting api-gateway on {}:{}", config.host, config.port);
 
-    let redis_client = redis::Client::open(config.redis_url.clone())
-        .expect("Failed to create Redis client");
+    let redis_client =
+        redis::Client::open(config.redis_url.clone()).expect("Failed to create Redis client");
 
     let csrf_secret = config.csrf_secret.clone();
     let host = config.host.clone();

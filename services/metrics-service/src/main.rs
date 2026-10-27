@@ -12,14 +12,15 @@ use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
 
-    info!("Starting metrics-service on {}:{}", config.host, config.port);
+    info!(
+        "Starting metrics-service on {}:{}",
+        config.host, config.port
+    );
 
     let db_pool = llm_governance_database::create_pool(&config.database_url)
         .await

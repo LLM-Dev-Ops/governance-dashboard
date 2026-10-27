@@ -3,11 +3,11 @@ use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage, HttpResponse,
 };
+use base64::{engine::general_purpose, Engine as _};
 use futures::future::LocalBoxFuture;
+use sha2::{Digest, Sha256};
 use std::future::{ready, Ready};
 use std::rc::Rc;
-use sha2::{Sha256, Digest};
-use base64::{Engine as _, engine::general_purpose};
 use uuid::Uuid;
 
 /// CSRF Protection Middleware
@@ -55,7 +55,11 @@ impl CsrfProtection {
         let mut hasher = Sha256::new();
         hasher.update(data.as_bytes());
         let expected_hash = hasher.finalize();
-        let expected_token = format!("{}:{}", timestamp, general_purpose::STANDARD.encode(expected_hash));
+        let expected_token = format!(
+            "{}:{}",
+            timestamp,
+            general_purpose::STANDARD.encode(expected_hash)
+        );
 
         token == expected_token
     }
@@ -112,17 +116,20 @@ where
                 if path.starts_with("/auth/login")
                     || path.starts_with("/auth/register")
                     || path.starts_with("/auth/password-reset")
-                    || path.starts_with("/health") {
+                    || path.starts_with("/health")
+                {
                     return service.call(req).await.map(|res| res.map_into_boxed_body());
                 }
 
                 // Get CSRF token from header
-                let csrf_token = req.headers()
+                let csrf_token = req
+                    .headers()
                     .get("X-CSRF-Token")
                     .and_then(|h| h.to_str().ok());
 
                 // Get session ID from user_id in extensions (set by auth middleware)
-                let session_id = req.extensions()
+                let session_id = req
+                    .extensions()
                     .get::<Uuid>()
                     .map(|id| id.to_string())
                     .unwrap_or_else(|| "anonymous".to_string());
@@ -135,11 +142,10 @@ where
                 }
 
                 // CSRF validation failed
-                let response = HttpResponse::Forbidden()
-                    .json(serde_json::json!({
-                        "success": false,
-                        "error": "CSRF token validation failed"
-                    }));
+                let response = HttpResponse::Forbidden().json(serde_json::json!({
+                    "success": false,
+                    "error": "CSRF token validation failed"
+                }));
 
                 return Ok(req.into_response(response));
             }

@@ -19,11 +19,8 @@ mod tests {
         let app = test::init_service(App::new().configure(configure)).await;
 
         for path in ["/health", "/api/v1/health"] {
-            let response = test::call_service(
-                &app,
-                test::TestRequest::get().uri(path).to_request(),
-            )
-            .await;
+            let response =
+                test::call_service(&app, test::TestRequest::get().uri(path).to_request()).await;
             assert_eq!(response.status(), StatusCode::OK, "{path}");
         }
     }

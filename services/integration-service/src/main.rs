@@ -12,21 +12,22 @@ use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
 
-    info!("Starting integration-service on {}:{}", config.host, config.port);
+    info!(
+        "Starting integration-service on {}:{}",
+        config.host, config.port
+    );
 
     let db_pool = llm_governance_database::create_pool(&config.database_url)
         .await
         .expect("Failed to create database pool");
 
-    let redis_client = redis::Client::open(config.redis_url.clone())
-        .expect("Failed to create Redis client");
+    let redis_client =
+        redis::Client::open(config.redis_url.clone()).expect("Failed to create Redis client");
 
     let bind_address = (config.host.clone(), config.port);
 

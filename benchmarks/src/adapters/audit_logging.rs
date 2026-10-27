@@ -68,7 +68,7 @@ fn create_audit_log(action: &str) {
 
 /// Simulate calculating a checksum for audit log integrity
 fn calculate_checksum(action: &str) -> String {
-    use sha2::{Sha256, Digest};
+    use sha2::{Digest, Sha256};
 
     let mut hasher = Sha256::new();
     hasher.update(action.as_bytes());
@@ -109,9 +109,15 @@ mod tests {
     fn test_calculate_checksum() {
         let checksum1 = calculate_checksum("create");
         let checksum2 = calculate_checksum("create");
-        assert_eq!(checksum1, checksum2, "Same input should produce same checksum");
+        assert_eq!(
+            checksum1, checksum2,
+            "Same input should produce same checksum"
+        );
 
         let checksum3 = calculate_checksum("delete");
-        assert_ne!(checksum1, checksum3, "Different inputs should produce different checksums");
+        assert_ne!(
+            checksum1, checksum3,
+            "Different inputs should produce different checksums"
+        );
     }
 }

@@ -13,9 +13,7 @@ use config::Config;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     // Load configuration
     dotenv::dotenv().ok();
@@ -29,8 +27,8 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to create database pool");
 
     // Initialize Redis connection
-    let redis_client = redis::Client::open(config.redis_url.clone())
-        .expect("Failed to create Redis client");
+    let redis_client =
+        redis::Client::open(config.redis_url.clone()).expect("Failed to create Redis client");
 
     // Start HTTP server
     let bind_address = (config.host.clone(), config.port);
