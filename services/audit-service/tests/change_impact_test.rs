@@ -2,7 +2,6 @@
 //!
 //! Verification tests for the Change Impact Agent HTTP handlers.
 
-use actix_web::{test, web, App};
 use serde_json::json;
 
 // Note: In a real implementation, these would import from the service module
