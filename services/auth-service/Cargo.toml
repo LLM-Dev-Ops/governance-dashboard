@@ -44,7 +44,6 @@ qrcode = "0.14"
 sha2 = "0.10"
 
 # LLM-Dev-Ops Infra (Phase 2B) - config, logging, errors
-llm-infra-core.workspace = true
 
 [dev-dependencies]
 mockall.workspace = true

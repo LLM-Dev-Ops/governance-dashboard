@@ -37,4 +37,3 @@ async-trait = "0.1"
 reqwest.workspace = true
 
 # LLM-Dev-Ops Infra (Phase 2B)
-llm-infra-core.workspace = true
