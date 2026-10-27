@@ -188,7 +188,7 @@ pub async fn update_policy(
     let _current_user_id = extract_user_id(&http_req)?;
 
     // Get current policy version
-    let current: (i32,) = sqlx::query_as("SELECT version FROM policies WHERE id = $1")
+    let _current: (i32,) = sqlx::query_as("SELECT version FROM policies WHERE id = $1")
         .bind(policy_id.as_ref())
         .fetch_optional(pool.get_ref())
         .await?
