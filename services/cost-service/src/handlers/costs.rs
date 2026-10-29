@@ -1,11 +1,10 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use chrono::{DateTime, Datelike, Utc};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use chrono::{DateTime, Utc};
-use rust_decimal::Decimal;
+use validator::Validate;
 
 #[derive(Debug, Deserialize)]
 pub struct CalculateCostRequest {
@@ -75,24 +74,32 @@ pub struct CostForecast {
 
 #[post("/costs/calculate")]
 pub async fn calculate_cost(
-    pool: web::Data<PgPool>,
+    _pool: web::Data<PgPool>,
     req: web::Json<CalculateCostRequest>,
 ) -> Result<impl Responder> {
+    if req.tokens_in < 0 || req.tokens_out < 0 {
+        return Err(AppError::Validation(
+            "token counts must be non-negative".to_string(),
+        ));
+    }
+
     let pricing = get_model_pricing(&req.provider, &req.model).await?;
 
     let input_cost = (req.tokens_in as f64 / 1_000_000.0) * pricing.input_price;
     let output_cost = (req.tokens_out as f64 / 1_000_000.0) * pricing.output_price;
     let total_cost = input_cost + output_cost;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(CostCalculationResponse {
-        provider: req.provider.clone(),
-        model: req.model.clone(),
-        tokens_in: req.tokens_in,
-        tokens_out: req.tokens_out,
-        input_cost,
-        output_cost,
-        total_cost,
-    })))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(CostCalculationResponse {
+            provider: req.provider.clone(),
+            model: req.model.clone(),
+            tokens_in: req.tokens_in,
+            tokens_out: req.tokens_out,
+            input_cost,
+            output_cost,
+            total_cost,
+        })),
+    )
 }
 
 #[get("/costs/team/{team_id}")]
@@ -102,12 +109,16 @@ pub async fn get_team_costs(
     query: web::Query<CostQuery>,
 ) -> Result<impl Responder> {
     let start_date = query.start_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().checked_sub_signed(chrono::Duration::days(30)).unwrap().to_rfc3339()
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
     });
 
-    let end_date = query.end_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().to_rfc3339()
-    });
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     let costs = sqlx::query_as::<_, CostBreakdown>(
         r#"
@@ -133,17 +144,19 @@ pub async fn get_team_costs(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let total_cost: f64 = costs.iter().map(|c| c.total_cost).sum();
+    let total_cost = sum_costs(&costs);
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "team_id": team_id.as_ref(),
-        "period": {
-            "start": start_date,
-            "end": end_date
-        },
-        "total_cost": total_cost,
-        "breakdown": costs
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "team_id": team_id.as_ref(),
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "total_cost": total_cost,
+            "breakdown": costs
+        }))),
+    )
 }
 
 #[get("/costs/user/{user_id}")]
@@ -153,12 +166,16 @@ pub async fn get_user_costs(
     query: web::Query<CostQuery>,
 ) -> Result<impl Responder> {
     let start_date = query.start_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().checked_sub_signed(chrono::Duration::days(30)).unwrap().to_rfc3339()
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
     });
 
-    let end_date = query.end_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().to_rfc3339()
-    });
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     let costs = sqlx::query_as::<_, CostBreakdown>(
         r#"
@@ -184,17 +201,19 @@ pub async fn get_user_costs(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let total_cost: f64 = costs.iter().map(|c| c.total_cost).sum();
+    let total_cost = sum_costs(&costs);
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "user_id": user_id.as_ref(),
-        "period": {
-            "start": start_date,
-            "end": end_date
-        },
-        "total_cost": total_cost,
-        "breakdown": costs
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "user_id": user_id.as_ref(),
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "total_cost": total_cost,
+            "breakdown": costs
+        }))),
+    )
 }
 
 #[post("/costs/budgets")]
@@ -206,12 +225,15 @@ pub async fn create_budget(
     req.validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
-    let current_user_id = extract_user_id(&http_req)?;
+    extract_user_id(&http_req)?;
 
     // Validate that either team_id or user_id is provided
-    if (req.team_id.is_some() && req.user_id.is_some()) ||
-       (req.team_id.is_none() && req.user_id.is_none()) {
-        return Err(AppError::Validation("Provide either team_id or user_id, not both".to_string()));
+    if (req.team_id.is_some() && req.user_id.is_some())
+        || (req.team_id.is_none() && req.user_id.is_none())
+    {
+        return Err(AppError::Validation(
+            "Provide either team_id or user_id, not both".to_string(),
+        ));
     }
 
     // Calculate period start and end
@@ -264,7 +286,10 @@ pub async fn list_budgets(
         sql.push_str(" AND user_id = $2");
     }
 
-    sql.push_str(&format!(" ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset));
+    sql.push_str(&format!(
+        " ORDER BY created_at DESC LIMIT {} OFFSET {}",
+        limit, offset
+    ));
 
     let mut query_builder = sqlx::query_as::<_, BudgetResponse>(&sql);
 
@@ -305,10 +330,12 @@ pub async fn get_budget(
         0.0
     };
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "budget": budget,
-        "utilization_percent": utilization
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "budget": budget,
+            "utilization_percent": utilization
+        }))),
+    )
 }
 
 #[put("/costs/budgets/{id}")]
@@ -372,7 +399,7 @@ pub async fn delete_budget(
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Budget deleted successfully"})
+        serde_json::json!({"message": "Budget deleted successfully"}),
     )))
 }
 
@@ -381,7 +408,9 @@ pub async fn forecast_costs(
     pool: web::Data<PgPool>,
     query: web::Query<ForecastQuery>,
 ) -> Result<impl Responder> {
-    let team_id = query.team_id.ok_or_else(|| AppError::Validation("team_id required".to_string()))?;
+    let team_id = query
+        .team_id
+        .ok_or_else(|| AppError::Validation("team_id required".to_string()))?;
 
     // Get historical data for last 30 days
     let historical: Vec<(f64,)> = sqlx::query_as(
@@ -439,12 +468,16 @@ pub async fn generate_chargeback_report(
     query: web::Query<ChargebackQuery>,
 ) -> Result<impl Responder> {
     let start_date = query.start_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().checked_sub_signed(chrono::Duration::days(30)).unwrap().to_rfc3339()
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
     });
 
-    let end_date = query.end_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().to_rfc3339()
-    });
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     #[derive(Debug, Serialize, sqlx::FromRow)]
     struct ChargebackEntry {
@@ -475,13 +508,15 @@ pub async fn generate_chargeback_report(
     .fetch_all(pool.get_ref())
     .await?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "period": {
-            "start": start_date,
-            "end": end_date
-        },
-        "entries": entries
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "entries": entries
+        }))),
+    )
 }
 
 // Helper structs and functions
@@ -521,6 +556,10 @@ pub struct CostBreakdown {
     pub request_count: i64,
 }
 
+pub fn sum_costs(costs: &[CostBreakdown]) -> f64 {
+    costs.iter().map(|cost| cost.total_cost).sum()
+}
+
 struct ModelPricing {
     input_price: f64,
     output_price: f64,
@@ -529,13 +568,34 @@ struct ModelPricing {
 async fn get_model_pricing(provider: &str, model: &str) -> Result<ModelPricing> {
     // Pricing per 1M tokens (as of 2024)
     let pricing = match (provider, model) {
-        ("openai", "gpt-4") => ModelPricing { input_price: 30.0, output_price: 60.0 },
-        ("openai", "gpt-4-turbo") => ModelPricing { input_price: 10.0, output_price: 30.0 },
-        ("openai", "gpt-3.5-turbo") => ModelPricing { input_price: 0.5, output_price: 1.5 },
-        ("anthropic", "claude-3-opus") => ModelPricing { input_price: 15.0, output_price: 75.0 },
-        ("anthropic", "claude-3-sonnet") => ModelPricing { input_price: 3.0, output_price: 15.0 },
-        ("anthropic", "claude-3-haiku") => ModelPricing { input_price: 0.25, output_price: 1.25 },
-        _ => ModelPricing { input_price: 1.0, output_price: 2.0 }, // Default pricing
+        ("openai", "gpt-4") => ModelPricing {
+            input_price: 30.0,
+            output_price: 60.0,
+        },
+        ("openai", "gpt-4-turbo") => ModelPricing {
+            input_price: 10.0,
+            output_price: 30.0,
+        },
+        ("openai", "gpt-3.5-turbo") => ModelPricing {
+            input_price: 0.5,
+            output_price: 1.5,
+        },
+        ("anthropic", "claude-3-opus") => ModelPricing {
+            input_price: 15.0,
+            output_price: 75.0,
+        },
+        ("anthropic", "claude-3-sonnet") => ModelPricing {
+            input_price: 3.0,
+            output_price: 15.0,
+        },
+        ("anthropic", "claude-3-haiku") => ModelPricing {
+            input_price: 0.25,
+            output_price: 1.25,
+        },
+        _ => ModelPricing {
+            input_price: 1.0,
+            output_price: 2.0,
+        }, // Default pricing
     };
 
     Ok(pricing)
@@ -549,31 +609,56 @@ fn extract_user_id(req: &HttpRequest) -> Result<Uuid> {
         .ok_or_else(|| AppError::Unauthorized)
 }
 
-fn calculate_period_bounds(period: &str, now: DateTime<Utc>) -> (DateTime<Utc>, DateTime<Utc>) {
+pub fn calculate_period_bounds(period: &str, now: DateTime<Utc>) -> (DateTime<Utc>, DateTime<Utc>) {
     match period {
         "daily" => {
-            let start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_local_timezone(chrono::Utc).unwrap();
+            let start = now
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_local_timezone(chrono::Utc)
+                .unwrap();
             let end = start + chrono::Duration::days(1);
             (start, end)
-        },
+        }
         "weekly" => {
-            let start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_local_timezone(chrono::Utc).unwrap();
+            let start = now
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_local_timezone(chrono::Utc)
+                .unwrap();
             let end = start + chrono::Duration::weeks(1);
             (start, end)
-        },
+        }
         "monthly" => {
-            let start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_local_timezone(chrono::Utc).unwrap();
+            let start = now
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_local_timezone(chrono::Utc)
+                .unwrap();
             let end = start + chrono::Duration::days(30);
             (start, end)
-        },
+        }
         "yearly" => {
-            let start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_local_timezone(chrono::Utc).unwrap();
+            let start = now
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_local_timezone(chrono::Utc)
+                .unwrap();
             let end = start + chrono::Duration::days(365);
             (start, end)
-        },
+        }
         _ => {
             // Default to monthly
-            let start = now.date_naive().and_hms_opt(0, 0, 0).unwrap().and_local_timezone(chrono::Utc).unwrap();
+            let start = now
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_local_timezone(chrono::Utc)
+                .unwrap();
             let end = start + chrono::Duration::days(30);
             (start, end)
         }
@@ -587,12 +672,16 @@ pub async fn get_organization_costs(
     query: web::Query<CostQuery>,
 ) -> Result<impl Responder> {
     let start_date = query.start_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().checked_sub_signed(chrono::Duration::days(30)).unwrap().to_rfc3339()
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
     });
 
-    let end_date = query.end_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().to_rfc3339()
-    });
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     let costs = sqlx::query_as::<_, CostBreakdown>(
         r#"
@@ -618,17 +707,19 @@ pub async fn get_organization_costs(
     .fetch_all(pool.get_ref())
     .await?;
 
-    let total_cost: f64 = costs.iter().map(|c| c.total_cost).sum();
+    let total_cost = sum_costs(&costs);
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "organization_id": organization_id.as_ref(),
-        "period": {
-            "start": start_date,
-            "end": end_date
-        },
-        "total_cost": total_cost,
-        "breakdown": costs
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "organization_id": organization_id.as_ref(),
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "total_cost": total_cost,
+            "breakdown": costs
+        }))),
+    )
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {

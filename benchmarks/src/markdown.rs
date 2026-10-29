@@ -6,7 +6,10 @@ pub fn generate_report(results: &[BenchmarkResult]) -> String {
 
     // Header
     report.push_str("# Benchmark Results\n\n");
-    report.push_str(&format!("Generated at: {}\n\n", chrono::Utc::now().to_rfc3339()));
+    report.push_str(&format!(
+        "Generated at: {}\n\n",
+        chrono::Utc::now().to_rfc3339()
+    ));
     report.push_str(&format!("Total benchmarks: {}\n\n", results.len()));
 
     // Summary table
@@ -23,14 +26,17 @@ pub fn generate_report(results: &[BenchmarkResult]) -> String {
         ));
     }
 
-    report.push_str("\n");
+    report.push('\n');
 
     // Detailed results
     report.push_str("## Detailed Results\n\n");
 
     for result in results {
         report.push_str(&format!("### {}\n\n", result.target_id));
-        report.push_str(&format!("**Timestamp:** {}\n\n", result.timestamp.to_rfc3339()));
+        report.push_str(&format!(
+            "**Timestamp:** {}\n\n",
+            result.timestamp.to_rfc3339()
+        ));
         report.push_str("**Metrics:**\n\n");
         report.push_str("```json\n");
         report.push_str(&serde_json::to_string_pretty(&result.metrics).unwrap_or_default());
@@ -76,8 +82,16 @@ pub fn generate_summary(results: &[BenchmarkResult]) -> String {
         let latest = results.iter().max_by_key(|r| r.timestamp).unwrap();
         let oldest = results.iter().min_by_key(|r| r.timestamp).unwrap();
 
-        summary.push_str(&format!("Latest: {} at {}\n", latest.target_id, latest.timestamp.to_rfc3339()));
-        summary.push_str(&format!("Oldest: {} at {}\n", oldest.target_id, oldest.timestamp.to_rfc3339()));
+        summary.push_str(&format!(
+            "Latest: {} at {}\n",
+            latest.target_id,
+            latest.timestamp.to_rfc3339()
+        ));
+        summary.push_str(&format!(
+            "Oldest: {} at {}\n",
+            oldest.target_id,
+            oldest.timestamp.to_rfc3339()
+        ));
     }
 
     summary
@@ -89,12 +103,10 @@ mod tests {
 
     #[test]
     fn test_generate_report() {
-        let results = vec![
-            BenchmarkResult::new(
-                "test_target".to_string(),
-                serde_json::json!({"metric": 42}),
-            ),
-        ];
+        let results = vec![BenchmarkResult::new(
+            "test_target".to_string(),
+            serde_json::json!({"metric": 42}),
+        )];
 
         let report = generate_report(&results);
         assert!(report.contains("# Benchmark Results"));
@@ -103,12 +115,10 @@ mod tests {
 
     #[test]
     fn test_generate_table() {
-        let results = vec![
-            BenchmarkResult::new(
-                "test_target".to_string(),
-                serde_json::json!({"metric": 42}),
-            ),
-        ];
+        let results = vec![BenchmarkResult::new(
+            "test_target".to_string(),
+            serde_json::json!({"metric": 42}),
+        )];
 
         let table = generate_table(&results);
         assert!(table.contains("test_target"));
@@ -117,12 +127,10 @@ mod tests {
 
     #[test]
     fn test_generate_summary() {
-        let results = vec![
-            BenchmarkResult::new(
-                "test_target".to_string(),
-                serde_json::json!({"metric": 42}),
-            ),
-        ];
+        let results = vec![BenchmarkResult::new(
+            "test_target".to_string(),
+            serde_json::json!({"metric": 42}),
+        )];
 
         let summary = generate_summary(&results);
         assert!(summary.contains("Total Benchmarks: 1"));

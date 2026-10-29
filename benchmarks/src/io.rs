@@ -75,12 +75,10 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("results.json");
 
-        let results = vec![
-            BenchmarkResult::new(
-                "test_target".to_string(),
-                serde_json::json!({"metric": 42}),
-            ),
-        ];
+        let results = vec![BenchmarkResult::new(
+            "test_target".to_string(),
+            serde_json::json!({"metric": 42}),
+        )];
 
         write_results_json(&results, &file_path).unwrap();
         let read_results = read_results_json(&file_path).unwrap();

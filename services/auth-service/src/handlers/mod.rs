@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse};
+use actix_web::web;
 use serde::{Deserialize, Serialize};
 
 pub mod auth;

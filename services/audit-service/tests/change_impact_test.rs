@@ -2,7 +2,6 @@
 //!
 //! Verification tests for the Change Impact Agent HTTP handlers.
 
-use actix_web::{test, web, App};
 use serde_json::json;
 
 // Note: In a real implementation, these would import from the service module
@@ -39,16 +38,33 @@ mod unit_tests {
     #[test]
     fn test_change_type_validation() {
         let valid_types = vec![
-            "create", "update", "delete", "toggle", "configure",
-            "policy_modify", "access_change", "model_version",
-            "budget_adjust", "quota_modify"
+            "create",
+            "update",
+            "delete",
+            "toggle",
+            "configure",
+            "policy_modify",
+            "access_change",
+            "model_version",
+            "budget_adjust",
+            "quota_modify",
         ];
 
         for change_type in valid_types {
             assert!(
-                ["create", "update", "delete", "toggle", "configure",
-                 "policy_modify", "access_change", "model_version",
-                 "budget_adjust", "quota_modify"].contains(&change_type),
+                [
+                    "create",
+                    "update",
+                    "delete",
+                    "toggle",
+                    "configure",
+                    "policy_modify",
+                    "access_change",
+                    "model_version",
+                    "budget_adjust",
+                    "quota_modify"
+                ]
+                .contains(&change_type),
                 "Change type '{}' should be valid",
                 change_type
             );
@@ -58,16 +74,39 @@ mod unit_tests {
     #[test]
     fn test_subject_type_validation() {
         let valid_types = vec![
-            "policy", "policy_rule", "configuration", "llm_model",
-            "llm_provider", "budget", "quota", "access_control",
-            "team", "user", "organization", "integration", "webhook"
+            "policy",
+            "policy_rule",
+            "configuration",
+            "llm_model",
+            "llm_provider",
+            "budget",
+            "quota",
+            "access_control",
+            "team",
+            "user",
+            "organization",
+            "integration",
+            "webhook",
         ];
 
         for subject_type in valid_types {
             assert!(
-                ["policy", "policy_rule", "configuration", "llm_model",
-                 "llm_provider", "budget", "quota", "access_control",
-                 "team", "user", "organization", "integration", "webhook"].contains(&subject_type),
+                [
+                    "policy",
+                    "policy_rule",
+                    "configuration",
+                    "llm_model",
+                    "llm_provider",
+                    "budget",
+                    "quota",
+                    "access_control",
+                    "team",
+                    "user",
+                    "organization",
+                    "integration",
+                    "webhook"
+                ]
+                .contains(&subject_type),
                 "Subject type '{}' should be valid",
                 subject_type
             );
@@ -143,7 +182,6 @@ mod unit_tests {
 
 #[cfg(test)]
 mod contract_tests {
-    use super::*;
 
     /// Test that the agent does NOT enforce policies
     #[test]
@@ -183,12 +221,7 @@ mod contract_tests {
         // - Use local persistence
 
         let allowed_persistence = "ruvector-service";
-        let forbidden_persistence = vec![
-            "google-sql",
-            "local-file",
-            "local-database",
-            "direct-sql",
-        ];
+        let forbidden_persistence = ["google-sql", "local-file", "local-database", "direct-sql"];
 
         assert!(!forbidden_persistence.contains(&allowed_persistence));
     }
@@ -246,12 +279,9 @@ mod integration_contract_tests {
         // - telemetry_ref: String (observatory reference)
         // - decision_event: DecisionEvent (persisted to ruvector)
 
-        let expected_response_fields = vec![
-            "assessment",
-            "telemetry_ref",
-        ];
+        let expected_response_fields = ["assessment", "telemetry_ref"];
 
-        let expected_assessment_fields = vec![
+        let expected_assessment_fields = [
             "id",
             "change_request_id",
             "impact_level",
@@ -285,12 +315,11 @@ mod integration_contract_tests {
 /// Smoke test helpers - CLI commands that should work
 #[cfg(test)]
 mod smoke_tests {
-    use super::*;
 
     #[test]
     fn test_cli_commands_defined() {
         // These CLI commands should be available
-        let commands = vec![
+        let commands = [
             "change-impact assess",
             "change-impact history",
             "change-impact get",
@@ -311,7 +340,7 @@ mod smoke_tests {
     #[test]
     fn test_api_endpoints_defined() {
         // These API endpoints should be available
-        let endpoints = vec![
+        let endpoints = [
             ("POST", "/api/v1/governance/change-impact"),
             ("POST", "/api/v1/governance/change-impact/simulate"),
             ("GET", "/api/v1/governance/change-impact/history"),

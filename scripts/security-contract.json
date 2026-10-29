@@ -1,0 +1,10 @@
+{
+  "baseline": "19bf496dcf8d5f7c21e3e97fe9c8bb9acf44b990",
+  "advisoryDb": "40f5be6fb12ed93fc591bf4ab23b7d793b3f2239",
+  "objective": "Remove all six known quinn-proto advisories using patched 0.11.18 without suppressions or test changes",
+  "baselineAuditCount": 38,
+  "ids": ["RUSTSEC-2026-0037","RUSTSEC-2026-0338","RUSTSEC-2026-0340","RUSTSEC-2026-0185","RUSTSEC-2026-0342","RUSTSEC-2026-0339"],
+  "acceptance": ["six advisories absent", "no newly introduced advisory IDs", "127 Rust tests retained and passing", "57 frontend tests retained and passing", "build, formatting, strict Clippy, typecheck pass", "full audit and unchanged 80 percent frontend coverage gates pass before promotion", "required exact-head CI and approvals pass"],
+  "budgetsSeconds": {"rustTest":360,"clippy":120,"build":120,"frontendEach":60,"audit":30},
+  "noClaims": ["lockfile update alone is not runtime exploitability proof", "elapsed build time is not a speed benchmark"]
+}

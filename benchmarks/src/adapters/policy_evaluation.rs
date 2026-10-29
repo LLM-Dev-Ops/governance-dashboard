@@ -110,13 +110,13 @@ fn check_max_tokens() -> bool {
 
 fn check_model_allowlist() -> bool {
     let model = "gpt-4";
-    let allowed = vec!["gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"];
+    let allowed = ["gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"];
     allowed.contains(&model)
 }
 
 fn check_blocked_patterns() -> bool {
     let content = "safe content";
-    let blocked = vec!["malicious", "harmful"];
+    let blocked = ["malicious", "harmful"];
     !blocked.iter().any(|pattern| content.contains(pattern))
 }
 

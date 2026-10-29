@@ -1,4 +1,4 @@
-use llm_governance_benchmarks::{run_all_benchmarks, io, markdown};
+use llm_governance_benchmarks::{io, markdown, run_all_benchmarks};
 use std::path::Path;
 
 /// Example CLI to run all benchmarks and save results
@@ -14,10 +14,9 @@ fn main() {
 
     // Define output paths
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-    let raw_json_path = Path::new("benchmarks/output/raw")
-        .join(format!("results_{}.json", timestamp));
-    let summary_md_path = Path::new("benchmarks/output")
-        .join(format!("report_{}.md", timestamp));
+    let raw_json_path =
+        Path::new("benchmarks/output/raw").join(format!("results_{}.json", timestamp));
+    let summary_md_path = Path::new("benchmarks/output").join(format!("report_{}.md", timestamp));
 
     // Save results to JSON
     match io::write_results_json(&results, &raw_json_path) {

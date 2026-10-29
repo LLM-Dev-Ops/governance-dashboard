@@ -16,6 +16,7 @@ actix-web.workspace = true
 actix-rt.workspace = true
 actix-cors.workspace = true
 tokio.workspace = true
+futures.workspace = true
 sqlx.workspace = true
 redis.workspace = true
 serde.workspace = true
@@ -44,7 +45,6 @@ qrcode = "0.14"
 sha2 = "0.10"
 
 # LLM-Dev-Ops Infra (Phase 2B) - config, logging, errors
-llm-infra-core.workspace = true
 
 [dev-dependencies]
 mockall.workspace = true

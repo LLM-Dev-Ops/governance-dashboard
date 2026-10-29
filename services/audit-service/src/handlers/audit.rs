@@ -1,10 +1,10 @@
 use actix_web::{get, post, web, HttpResponse, Responder};
+use chrono::{DateTime, Utc};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use chrono::{DateTime, Utc, NaiveDateTime};
-use sha2::{Sha256, Digest};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateAuditLogRequest {
@@ -98,40 +98,43 @@ pub async fn query_audit_logs(
         "SELECT id, timestamp, user_id, action, resource_type, resource_id, ip_address, details, checksum FROM audit_logs WHERE 1=1"
     );
 
-    let mut bindings = Vec::new();
     let mut bind_index = 1;
 
-    if let Some(user_id) = query.user_id {
+    if let Some(_user_id) = query.user_id {
         sql.push_str(&format!(" AND user_id = ${}", bind_index));
         bind_index += 1;
     }
 
-    if let Some(ref action) = query.action {
+    if let Some(ref _action) = query.action {
         sql.push_str(&format!(" AND action = ${}", bind_index));
         bind_index += 1;
     }
 
-    if let Some(ref resource_type) = query.resource_type {
+    if let Some(ref _resource_type) = query.resource_type {
         sql.push_str(&format!(" AND resource_type = ${}", bind_index));
         bind_index += 1;
     }
 
-    if let Some(ref resource_id) = query.resource_id {
+    if let Some(ref _resource_id) = query.resource_id {
         sql.push_str(&format!(" AND resource_id = ${}", bind_index));
         bind_index += 1;
     }
 
-    if let Some(ref start_date) = query.start_date {
+    if let Some(ref _start_date) = query.start_date {
         sql.push_str(&format!(" AND timestamp >= ${}", bind_index));
         bind_index += 1;
     }
 
-    if let Some(ref end_date) = query.end_date {
+    if let Some(ref _end_date) = query.end_date {
         sql.push_str(&format!(" AND timestamp <= ${}", bind_index));
         bind_index += 1;
     }
 
-    sql.push_str(&format!(" ORDER BY timestamp DESC LIMIT ${} OFFSET ${}", bind_index, bind_index + 1));
+    sql.push_str(&format!(
+        " ORDER BY timestamp DESC LIMIT ${} OFFSET ${}",
+        bind_index,
+        bind_index + 1
+    ));
 
     // Execute query with dynamic bindings
     let mut query_builder = sqlx::query_as::<_, AuditLogResponse>(&sql);
@@ -159,11 +162,13 @@ pub async fn query_audit_logs(
 
     let logs = query_builder.fetch_all(pool.get_ref()).await?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "logs": logs,
-        "limit": limit,
-        "offset": offset
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "logs": logs,
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
 }
 
 #[get("/audit/logs/{id}")]
@@ -214,12 +219,14 @@ pub async fn verify_audit_log(
 
     let is_valid = calculated_checksum == log.checksum;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "log_id": log.id,
-        "is_valid": is_valid,
-        "stored_checksum": log.checksum,
-        "calculated_checksum": calculated_checksum
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "log_id": log.id,
+            "is_valid": is_valid,
+            "stored_checksum": log.checksum,
+            "calculated_checksum": calculated_checksum
+        }))),
+    )
 }
 
 #[post("/audit/export")]
@@ -266,13 +273,16 @@ pub async fn export_audit_logs(
                 .insert_header(("Content-Disposition", "attachment; filename=audit_logs.csv"))
                 .body(csv))
         }
-        "json" => {
-            Ok(HttpResponse::Ok()
-                .content_type("application/json")
-                .insert_header(("Content-Disposition", "attachment; filename=audit_logs.json"))
-                .json(logs))
-        }
-        _ => Err(AppError::Validation("Invalid export format. Use 'csv' or 'json'".to_string()))
+        "json" => Ok(HttpResponse::Ok()
+            .content_type("application/json")
+            .insert_header((
+                "Content-Disposition",
+                "attachment; filename=audit_logs.json",
+            ))
+            .json(logs)),
+        _ => Err(AppError::Validation(
+            "Invalid export format. Use 'csv' or 'json'".to_string(),
+        )),
     }
 }
 
@@ -281,33 +291,29 @@ pub async fn generate_compliance_report(
     pool: web::Data<PgPool>,
     query: web::Query<ComplianceQuery>,
 ) -> Result<impl Responder> {
-    #[derive(Debug, Serialize, sqlx::FromRow)]
-    struct ComplianceStats {
-        total_actions: i64,
-        unique_users: i64,
-        actions_by_type: serde_json::Value,
-    }
-
     let start_date = query.start_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().checked_sub_signed(chrono::Duration::days(30)).unwrap().to_rfc3339()
+        chrono::Utc::now()
+            .checked_sub_signed(chrono::Duration::days(30))
+            .unwrap()
+            .to_rfc3339()
     });
 
-    let end_date = query.end_date.clone().unwrap_or_else(|| {
-        chrono::Utc::now().to_rfc3339()
-    });
+    let end_date = query
+        .end_date
+        .clone()
+        .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
     // Get total actions
-    let total_actions: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2"
-    )
-    .bind(&start_date)
-    .bind(&end_date)
-    .fetch_one(pool.get_ref())
-    .await?;
+    let total_actions: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2")
+            .bind(&start_date)
+            .bind(&end_date)
+            .fetch_one(pool.get_ref())
+            .await?;
 
     // Get unique users
     let unique_users: (i64,) = sqlx::query_as(
-        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2"
+        "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE timestamp BETWEEN $1 AND $2",
     )
     .bind(&start_date)
     .bind(&end_date)
@@ -328,15 +334,17 @@ pub async fn generate_compliance_report(
         .map(|(action, count)| (action, serde_json::json!(count)))
         .collect();
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "period": {
-            "start": start_date,
-            "end": end_date
-        },
-        "total_actions": total_actions.0,
-        "unique_users": unique_users.0,
-        "actions_by_type": actions_map
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "period": {
+                "start": start_date,
+                "end": end_date
+            },
+            "total_actions": total_actions.0,
+            "unique_users": unique_users.0,
+            "actions_by_type": actions_map
+        }))),
+    )
 }
 
 // Helper functions
@@ -381,7 +389,8 @@ fn extract_ip_address(req: &actix_web::HttpRequest) -> Option<String> {
 }
 
 fn generate_csv(logs: &[AuditLogResponse]) -> Result<String> {
-    let mut csv = String::from("id,timestamp,user_id,action,resource_type,resource_id,ip_address,checksum\n");
+    let mut csv =
+        String::from("id,timestamp,user_id,action,resource_type,resource_id,ip_address,checksum\n");
 
     for log in logs {
         csv.push_str(&format!(

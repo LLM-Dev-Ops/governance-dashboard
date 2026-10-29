@@ -1,20 +1,30 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use chrono::{DateTime, Utc};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use chrono::{DateTime, Utc};
+use validator::{Validate, ValidationError};
 
 // ============================================================================
 // Request/Response Types
 // ============================================================================
 
+fn validate_slug(slug: &str) -> std::result::Result<(), ValidationError> {
+    if slug.chars().all(|character| {
+        character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+    }) {
+        Ok(())
+    } else {
+        Err(ValidationError::new("invalid_slug"))
+    }
+}
+
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateOrganizationRequest {
     #[validate(length(min = 1, max = 255))]
     pub name: String,
-    #[validate(length(min = 1, max = 100), regex = "^[a-z0-9-]+$")]
+    #[validate(length(min = 1, max = 100), custom(function = "validate_slug"))]
     pub slug: String,
     pub description: Option<String>,
     pub settings: Option<serde_json::Value>,
@@ -133,7 +143,8 @@ pub async fn create_organization(
     req_body: web::Json<CreateOrganizationRequest>,
     req: HttpRequest,
 ) -> Result<impl Responder> {
-    req_body.validate()
+    req_body
+        .validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
     let user_id = extract_user_id(&req)?;
@@ -183,7 +194,13 @@ pub async fn update_organization(
     let user_id = extract_user_id(&req)?;
 
     // Verify user has admin role
-    verify_organization_role(pool.get_ref(), *organization_id, user_id, &["owner", "admin"]).await?;
+    verify_organization_role(
+        pool.get_ref(),
+        *organization_id,
+        user_id,
+        &["owner", "admin"],
+    )
+    .await?;
 
     // Build dynamic update query
     let mut updates = vec![];
@@ -232,9 +249,7 @@ pub async fn update_organization(
     }
     query_builder = query_builder.bind(*organization_id);
 
-    let organization = query_builder
-        .fetch_one(pool.get_ref())
-        .await?;
+    let organization = query_builder.fetch_one(pool.get_ref()).await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(organization)))
 }
@@ -260,7 +275,7 @@ pub async fn delete_organization(
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Organization deleted successfully"})
+        serde_json::json!({"message": "Organization deleted successfully"}),
     )))
 }
 
@@ -300,7 +315,13 @@ pub async fn add_organization_member(
     req: HttpRequest,
 ) -> Result<impl Responder> {
     let user_id = extract_user_id(&req)?;
-    verify_organization_role(pool.get_ref(), *organization_id, user_id, &["owner", "admin"]).await?;
+    verify_organization_role(
+        pool.get_ref(),
+        *organization_id,
+        user_id,
+        &["owner", "admin"],
+    )
+    .await?;
 
     let member = sqlx::query_as::<_, OrganizationMemberResponse>(
         r#"
@@ -327,20 +348,27 @@ pub async fn remove_organization_member(
     let (organization_id, member_id) = path.into_inner();
     let user_id = extract_user_id(&req)?;
 
-    verify_organization_role(pool.get_ref(), organization_id, user_id, &["owner", "admin"]).await?;
+    verify_organization_role(
+        pool.get_ref(),
+        organization_id,
+        user_id,
+        &["owner", "admin"],
+    )
+    .await?;
 
-    let result = sqlx::query("DELETE FROM organization_members WHERE id = $1 AND organization_id = $2")
-        .bind(member_id)
-        .bind(organization_id)
-        .execute(pool.get_ref())
-        .await?;
+    let result =
+        sqlx::query("DELETE FROM organization_members WHERE id = $1 AND organization_id = $2")
+            .bind(member_id)
+            .bind(organization_id)
+            .execute(pool.get_ref())
+            .await?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Member not found".to_string()));
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Member removed successfully"})
+        serde_json::json!({"message": "Member removed successfully"}),
     )))
 }
 
@@ -379,11 +407,18 @@ pub async fn create_team(
     req_body: web::Json<CreateTeamRequest>,
     req: HttpRequest,
 ) -> Result<impl Responder> {
-    req_body.validate()
+    req_body
+        .validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
     let user_id = extract_user_id(&req)?;
-    verify_organization_role(pool.get_ref(), *organization_id, user_id, &["owner", "admin"]).await?;
+    verify_organization_role(
+        pool.get_ref(),
+        *organization_id,
+        user_id,
+        &["owner", "admin"],
+    )
+    .await?;
 
     let team = sqlx::query_as::<_, TeamResponse>(
         r#"
@@ -425,7 +460,7 @@ pub async fn delete_team(
         .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Team deleted successfully"})
+        serde_json::json!({"message": "Team deleted successfully"}),
     )))
 }
 
@@ -468,7 +503,7 @@ async fn verify_organization_role(
     allowed_roles: &[&str],
 ) -> Result<()> {
     let role: Option<(String,)> = sqlx::query_as(
-        "SELECT role FROM organization_members WHERE organization_id = $1 AND user_id = $2"
+        "SELECT role FROM organization_members WHERE organization_id = $1 AND user_id = $2",
     )
     .bind(organization_id)
     .bind(user_id)

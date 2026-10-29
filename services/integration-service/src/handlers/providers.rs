@@ -1,10 +1,10 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use chrono::{DateTime, Utc};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use chrono::{DateTime, Utc};
+use validator::Validate;
 
 // ============================================================================
 // Request/Response Types
@@ -136,7 +136,8 @@ pub async fn create_provider(
     req_body: web::Json<CreateProviderRequest>,
     req: HttpRequest,
 ) -> Result<impl Responder> {
-    req_body.validate()
+    req_body
+        .validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
     let user_id = extract_user_id(&req)?;
@@ -164,7 +165,12 @@ pub async fn create_provider(
     .bind(&req_body.display_name)
     .bind(encrypted_key)
     .bind(&req_body.endpoint_url)
-    .bind(req_body.configuration.clone().unwrap_or(serde_json::json!({})))
+    .bind(
+        req_body
+            .configuration
+            .clone()
+            .unwrap_or(serde_json::json!({})),
+    )
     .fetch_one(pool.get_ref())
     .await?;
 
@@ -181,13 +187,12 @@ pub async fn update_provider(
     let user_id = extract_user_id(&req)?;
 
     // Get provider to check organization
-    let provider: (Uuid,) = sqlx::query_as(
-        "SELECT organization_id FROM llm_providers WHERE id = $1"
-    )
-    .bind(*provider_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
+    let provider: (Uuid,) =
+        sqlx::query_as("SELECT organization_id FROM llm_providers WHERE id = $1")
+            .bind(*provider_id)
+            .fetch_optional(pool.get_ref())
+            .await?
+            .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
 
     verify_org_admin(pool.get_ref(), provider.0, user_id).await?;
 
@@ -250,13 +255,12 @@ pub async fn delete_provider(
 ) -> Result<impl Responder> {
     let user_id = extract_user_id(&req)?;
 
-    let provider: (Uuid,) = sqlx::query_as(
-        "SELECT organization_id FROM llm_providers WHERE id = $1"
-    )
-    .bind(*provider_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
+    let provider: (Uuid,) =
+        sqlx::query_as("SELECT organization_id FROM llm_providers WHERE id = $1")
+            .bind(*provider_id)
+            .fetch_optional(pool.get_ref())
+            .await?
+            .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
 
     verify_org_admin(pool.get_ref(), provider.0, user_id).await?;
 
@@ -266,7 +270,7 @@ pub async fn delete_provider(
         .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Provider deleted successfully"})
+        serde_json::json!({"message": "Provider deleted successfully"}),
     )))
 }
 
@@ -283,13 +287,12 @@ pub async fn list_models(
     let user_id = extract_user_id(&req)?;
 
     // Verify access through provider's organization
-    let provider: (Uuid,) = sqlx::query_as(
-        "SELECT organization_id FROM llm_providers WHERE id = $1"
-    )
-    .bind(*provider_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
+    let provider: (Uuid,) =
+        sqlx::query_as("SELECT organization_id FROM llm_providers WHERE id = $1")
+            .bind(*provider_id)
+            .fetch_optional(pool.get_ref())
+            .await?
+            .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
 
     verify_org_access(pool.get_ref(), provider.0, user_id).await?;
 
@@ -318,23 +321,22 @@ pub async fn create_model(
     req_body: web::Json<CreateModelRequest>,
     req: HttpRequest,
 ) -> Result<impl Responder> {
-    req_body.validate()
+    req_body
+        .validate()
         .map_err(|e| AppError::Validation(format!("{}", e)))?;
 
     let user_id = extract_user_id(&req)?;
 
-    let provider: (Uuid,) = sqlx::query_as(
-        "SELECT organization_id FROM llm_providers WHERE id = $1"
-    )
-    .bind(*provider_id)
-    .fetch_optional(pool.get_ref())
-    .await?
-    .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
+    let provider: (Uuid,) =
+        sqlx::query_as("SELECT organization_id FROM llm_providers WHERE id = $1")
+            .bind(*provider_id)
+            .fetch_optional(pool.get_ref())
+            .await?
+            .ok_or_else(|| AppError::NotFound("Provider not found".to_string()))?;
 
     verify_org_admin(pool.get_ref(), provider.0, user_id).await?;
 
-    let capabilities = req_body.capabilities.clone()
-        .unwrap_or_default();
+    let capabilities = req_body.capabilities.clone().unwrap_or_default();
 
     let model = sqlx::query_as::<_, ModelResponse>(
         r#"
@@ -378,7 +380,7 @@ pub async fn delete_model(
         FROM llm_models m
         JOIN llm_providers p ON m.provider_id = p.id
         WHERE m.id = $1
-        "#
+        "#,
     )
     .bind(*model_id)
     .fetch_optional(pool.get_ref())
@@ -393,7 +395,7 @@ pub async fn delete_model(
         .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Model deleted successfully"})
+        serde_json::json!({"message": "Model deleted successfully"}),
     )))
 }
 
@@ -427,7 +429,7 @@ async fn verify_org_access(pool: &PgPool, org_id: Uuid, user_id: Uuid) -> Result
 
 async fn verify_org_admin(pool: &PgPool, org_id: Uuid, user_id: Uuid) -> Result<()> {
     let role: Option<(String,)> = sqlx::query_as(
-        "SELECT role FROM organization_members WHERE organization_id = $1 AND user_id = $2"
+        "SELECT role FROM organization_members WHERE organization_id = $1 AND user_id = $2",
     )
     .bind(org_id)
     .bind(user_id)

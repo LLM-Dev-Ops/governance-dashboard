@@ -1,6 +1,5 @@
 use actix_web::{web, App, HttpServer};
 use tracing::{info, Level};
-use tracing_subscriber;
 
 mod config;
 mod handlers;
@@ -12,18 +11,21 @@ use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
 
-    info!("Starting metrics-service on {}:{}", config.host, config.port);
+    info!(
+        "Starting metrics-service on {}:{}",
+        config.host, config.port
+    );
 
     let db_pool = llm_governance_database::create_pool(&config.database_url)
         .await
         .expect("Failed to create database pool");
+
+    let bind_address = (config.host.clone(), config.port);
 
     HttpServer::new(move || {
         App::new()
@@ -32,7 +34,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(tracing_actix_web::TracingLogger::default())
             .configure(handlers::configure)
     })
-    .bind((config.host.as_str(), config.port))?
+    .bind(bind_address)?
     .run()
     .await
 }

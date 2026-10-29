@@ -37,7 +37,6 @@ rust_decimal = { version = "1.36", features = ["serde-with-str"] }
 num-traits = "0.2"
 
 # LLM-Dev-Ops Infra (Phase 2B) - config, logging, cache
-llm-infra-core.workspace = true
 
 [dev-dependencies]
 mockall.workspace = true

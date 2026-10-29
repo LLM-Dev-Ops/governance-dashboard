@@ -1,9 +1,9 @@
 use actix_web::web;
 
-pub mod health;
 pub mod audit;
-pub mod governance;
 pub mod change_impact;
+pub mod governance;
+pub mod health;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -11,6 +11,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .configure(health::configure)
             .configure(audit::configure)
             .configure(governance::configure)
-            .configure(change_impact::configure)
+            .configure(change_impact::configure),
     );
 }

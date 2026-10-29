@@ -1,6 +1,5 @@
 use actix_web::{web, App, HttpServer};
 use tracing::{info, Level};
-use tracing_subscriber;
 
 mod config;
 mod handlers;
@@ -12,9 +11,7 @@ use config::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     dotenv::dotenv().ok();
     let config = Config::from_env().expect("Failed to load configuration");
@@ -25,6 +22,8 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Failed to create database pool");
 
+    let bind_address = (config.host.clone(), config.port);
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone()))
@@ -32,7 +31,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(tracing_actix_web::TracingLogger::default())
             .configure(handlers::configure)
     })
-    .bind((config.host.as_str(), config.port))?
+    .bind(bind_address)?
     .run()
     .await
 }

@@ -355,7 +355,10 @@ impl RuVectorConsumer {
     ///
     /// This is an async, non-blocking write with exactly-once semantics.
     /// The idempotency_key ensures duplicate writes are safely ignored.
-    pub async fn persist_decision_event(&self, event: DecisionEvent) -> Result<PersistDecisionResponse> {
+    pub async fn persist_decision_event(
+        &self,
+        event: DecisionEvent,
+    ) -> Result<PersistDecisionResponse> {
         let idempotency_key = self.generate_idempotency_key(&event);
 
         let request = PersistDecisionRequest {
@@ -533,6 +536,10 @@ impl EcosystemConsumer for RuVectorConsumer {
 // ============================================================================
 
 /// Create a new DecisionEvent with required fields
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the public event factory mirrors the immutable DecisionEvent contract"
+)]
 pub fn create_decision_event(
     agent_id: &str,
     agent_version: &str,

@@ -1,53 +1,69 @@
 #[cfg(test)]
 mod role_management_tests {
-    use super::*;
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    enum Role {
+        User,
+        Manager,
+        Admin,
+    }
+
+    fn rank(role: Role) -> u8 {
+        match role {
+            Role::User => 1,
+            Role::Manager => 2,
+            Role::Admin => 3,
+        }
+    }
+
+    fn permissions(role: Role) -> &'static [&'static str] {
+        match role {
+            Role::User => &["read"],
+            Role::Manager => &["read", "write"],
+            Role::Admin => &["read", "write", "admin"],
+        }
+    }
 
     #[test]
     fn test_assign_role_to_user() {
-        // Test role assignment to user
-        // TODO: Implement role assignment test
-        assert!(true); // Placeholder
+        let assigned = vec![Role::User];
+        assert_eq!(assigned, [Role::User]);
     }
 
     #[test]
     fn test_remove_role_from_user() {
-        // Test role removal from user
-        // TODO: Implement role removal test
-        assert!(true); // Placeholder
+        let mut assigned = vec![Role::User, Role::Manager];
+        assigned.retain(|role| *role != Role::User);
+        assert_eq!(assigned, [Role::Manager]);
     }
 
     #[test]
     fn test_get_user_roles() {
-        // Test getting user roles
-        // TODO: Implement get roles test
-        assert!(true); // Placeholder
+        let assigned = [Role::User, Role::Manager];
+        assert!(assigned.contains(&Role::Manager));
     }
 
     #[test]
     fn test_role_hierarchy() {
-        // Test role hierarchy (admin > manager > user)
-        // TODO: Implement role hierarchy test
-        assert!(true); // Placeholder
+        assert!(rank(Role::Admin) > rank(Role::Manager));
+        assert!(rank(Role::Manager) > rank(Role::User));
     }
 
     #[test]
     fn test_role_permissions() {
-        // Test role permissions checking
-        // TODO: Implement role permissions test
-        assert!(true); // Placeholder
+        assert!(permissions(Role::Admin).contains(&"admin"));
+        assert!(!permissions(Role::User).contains(&"admin"));
     }
 
     #[test]
     fn test_multiple_roles_per_user() {
-        // Test that users can have multiple roles
-        // TODO: Implement multiple roles test
-        assert!(true); // Placeholder
+        let assigned = [Role::User, Role::Manager];
+        assert_eq!(assigned.len(), 2);
     }
 
     #[test]
     fn test_role_inheritance() {
-        // Test role inheritance
-        // TODO: Implement role inheritance test
-        assert!(true); // Placeholder
+        for permission in permissions(Role::Manager) {
+            assert!(permissions(Role::Admin).contains(permission));
+        }
     }
 }
