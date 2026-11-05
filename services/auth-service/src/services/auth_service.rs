@@ -1,12 +1,12 @@
-use sqlx::PgPool;
-use uuid::Uuid;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use llm_governance_common::{AppError, Result};
 use chrono::Utc;
-use sha2::{Sha256, Digest};
+use llm_governance_common::{AppError, Result};
+use sha2::{Digest, Sha256};
+use sqlx::PgPool;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct User {
@@ -36,12 +36,7 @@ impl AuthService {
         Self { pool }
     }
 
-    pub async fn register_user(
-        &self,
-        email: &str,
-        password: &str,
-        name: &str,
-    ) -> Result<User> {
+    pub async fn register_user(&self, email: &str, password: &str, name: &str) -> Result<User> {
         // Hash password using Argon2
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
@@ -73,11 +68,7 @@ impl AuthService {
         Ok(user)
     }
 
-    pub async fn authenticate_user(
-        &self,
-        email: &str,
-        password: &str,
-    ) -> Result<User> {
+    pub async fn authenticate_user(&self, email: &str, password: &str) -> Result<User> {
         // Fetch user by email
         let user = sqlx::query_as::<_, User>(
             r#"
@@ -191,7 +182,8 @@ impl AuthService {
         .fetch_optional(&self.pool)
         .await?;
 
-        let (user_id,) = result.ok_or_else(|| AppError::BadRequest("Invalid or expired token".to_string()))?;
+        let (user_id,) =
+            result.ok_or_else(|| AppError::BadRequest("Invalid or expired token".to_string()))?;
 
         // Hash new password
         let salt = SaltString::generate(&mut OsRng);

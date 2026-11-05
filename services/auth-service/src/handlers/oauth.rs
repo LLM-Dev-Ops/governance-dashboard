@@ -1,5 +1,5 @@
 use actix_web::{get, post, web, HttpResponse, Responder};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct OAuthCallbackRequest {
@@ -16,7 +16,7 @@ async fn google_oauth_init() -> impl Responder {
 }
 
 #[post("/oauth/google/callback")]
-async fn google_oauth_callback(req: web::Json<OAuthCallbackRequest>) -> impl Responder {
+async fn google_oauth_callback(_req: web::Json<OAuthCallbackRequest>) -> impl Responder {
     // TODO(#5): Implement Google OAuth callback
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Google OAuth callback endpoint not yet implemented"
@@ -32,7 +32,7 @@ async fn github_oauth_init() -> impl Responder {
 }
 
 #[post("/oauth/github/callback")]
-async fn github_oauth_callback(req: web::Json<OAuthCallbackRequest>) -> impl Responder {
+async fn github_oauth_callback(_req: web::Json<OAuthCallbackRequest>) -> impl Responder {
     // TODO(#5): Implement GitHub OAuth callback
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "GitHub OAuth callback endpoint not yet implemented"

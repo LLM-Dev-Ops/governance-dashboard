@@ -29,6 +29,13 @@ pub struct AuthResponse {
 
 #[post("/auth/login")]
 async fn login(req: web::Json<LoginRequest>) -> impl Responder {
+    if let Err(errors) = req.validate() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "validation_failed",
+            "details": errors.to_string()
+        }));
+    }
+
     // TODO(#1): Implement login logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Login endpoint not yet implemented"
@@ -37,6 +44,13 @@ async fn login(req: web::Json<LoginRequest>) -> impl Responder {
 
 #[post("/auth/register")]
 async fn register(req: web::Json<RegisterRequest>) -> impl Responder {
+    if let Err(errors) = req.validate() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "validation_failed",
+            "details": errors.to_string()
+        }));
+    }
+
     // TODO(#1): Implement registration logic
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "Register endpoint not yet implemented"

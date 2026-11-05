@@ -96,14 +96,10 @@ impl PolicyEngineConsumer {
     }
 
     /// Consume compliance rule states
-    pub async fn get_compliance_status(
-        &self,
-        organization_id: &str,
-    ) -> Result<ComplianceStatus> {
+    pub async fn get_compliance_status(&self, organization_id: &str) -> Result<ComplianceStatus> {
         let url = format!(
             "{}/api/v1/compliance/status?org_id={}",
-            self.config.base_url,
-            organization_id
+            self.config.base_url, organization_id
         );
 
         self.fetch_json(&url).await
@@ -117,8 +113,7 @@ impl PolicyEngineConsumer {
     ) -> Result<Vec<PolicyEvaluationResult>> {
         let mut url = format!(
             "{}/api/v1/enforcement/decisions?org_id={}",
-            self.config.base_url,
-            organization_id
+            self.config.base_url, organization_id
         );
 
         if let Some(ts) = from_timestamp {
@@ -148,10 +143,9 @@ impl PolicyEngineConsumer {
             )));
         }
 
-        response
-            .json()
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to parse Policy Engine response: {}", e)))
+        response.json().await.map_err(|e| {
+            AppError::Internal(format!("Failed to parse Policy Engine response: {}", e))
+        })
     }
 }
 

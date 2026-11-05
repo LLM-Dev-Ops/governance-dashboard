@@ -116,7 +116,10 @@ impl RegistryConsumer {
             params.push(format!("provider={}", p));
         }
         if let Some(s) = status {
-            params.push(format!("status={}", serde_json::to_string(&s).unwrap().trim_matches('"')));
+            params.push(format!(
+                "status={}",
+                serde_json::to_string(&s).unwrap().trim_matches('"')
+            ));
         }
 
         if !params.is_empty() {
@@ -128,7 +131,10 @@ impl RegistryConsumer {
 
     /// Consume version history for a model
     pub async fn get_model_versions(&self, model_id: &str) -> Result<Vec<ModelVersion>> {
-        let url = format!("{}/api/v1/models/{}/versions", self.config.base_url, model_id);
+        let url = format!(
+            "{}/api/v1/models/{}/versions",
+            self.config.base_url, model_id
+        );
         self.fetch_json(&url).await
     }
 

@@ -1,12 +1,12 @@
-use actix_web::{get, post, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
+use llm_governance_common::{ApiResponse, AppError, Result};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
-use reqwest::Client;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct ProxyRequest {
@@ -57,8 +57,8 @@ struct CircuitBreakerState {
 
 #[derive(Debug, Clone, PartialEq)]
 enum CircuitState {
-    Closed,  // Normal operation
-    Open,    // Failing, reject requests
+    Closed,   // Normal operation
+    Open,     // Failing, reject requests
     HalfOpen, // Testing if service recovered
 }
 
@@ -72,13 +72,21 @@ pub async fn proxy_llm_request(
     req: web::Json<ProxyRequest>,
     http_req: HttpRequest,
 ) -> Result<impl Responder> {
+    if req.stream.unwrap_or(false) {
+        return Err(AppError::BadRequest(
+            "Streaming proxy responses are not supported".to_string(),
+        ));
+    }
+
     let user_id = extract_user_id_optional(&http_req);
     let team_id = extract_team_id_optional(&http_req);
 
     // Check circuit breaker
     let provider_key = format!("{}:{}", req.provider, req.model);
     if !check_circuit_breaker(&circuit_breakers, &provider_key).await {
-        return Err(AppError::Internal("Service temporarily unavailable".to_string()));
+        return Err(AppError::Internal(
+            "Service temporarily unavailable".to_string(),
+        ));
     }
 
     // Check policies
@@ -92,7 +100,10 @@ pub async fn proxy_llm_request(
         "google" => proxy_to_google(&http_client, &req).await,
         "azure" => proxy_to_azure(&http_client, &req).await,
         "bedrock" => proxy_to_bedrock(&http_client, &req).await,
-        _ => Err(AppError::BadRequest(format!("Unsupported provider: {}", req.provider))),
+        _ => Err(AppError::BadRequest(format!(
+            "Unsupported provider: {}",
+            req.provider
+        ))),
     };
 
     let latency_ms = start_time.elapsed().as_millis() as i32;
@@ -103,7 +114,12 @@ pub async fn proxy_llm_request(
             record_success(&circuit_breakers, &provider_key).await;
 
             // Calculate cost
-            let cost = calculate_cost(&req.provider, &req.model, response.usage.prompt_tokens, response.usage.completion_tokens);
+            let cost = calculate_cost(
+                &req.provider,
+                &req.model,
+                response.usage.prompt_tokens,
+                response.usage.completion_tokens,
+            );
 
             // Record metrics
             record_metrics(
@@ -117,7 +133,8 @@ pub async fn proxy_llm_request(
                 latency_ms,
                 cost,
                 "success",
-            ).await?;
+            )
+            .await?;
 
             // Record audit log
             record_audit_log(
@@ -126,7 +143,8 @@ pub async fn proxy_llm_request(
                 "LLM_REQUEST",
                 &format!("{}:{}", req.provider, req.model),
                 &response.id,
-            ).await?;
+            )
+            .await?;
 
             Ok(HttpResponse::Ok().json(ApiResponse::success(response)))
         }
@@ -146,7 +164,8 @@ pub async fn proxy_llm_request(
                 latency_ms,
                 0.0,
                 "error",
-            ).await?;
+            )
+            .await?;
 
             Err(e)
         }
@@ -194,10 +213,13 @@ pub async fn check_provider_health(
 
     let mut health_status = HashMap::new();
     for (provider, state) in breakers.iter() {
-        health_status.insert(provider.clone(), serde_json::json!({
-            "state": format!("{:?}", state.state),
-            "failures": state.failures
-        }));
+        health_status.insert(
+            provider.clone(),
+            serde_json::json!({
+                "state": format!("{:?}", state.state),
+                "failures": state.failures
+            }),
+        );
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(health_status)))
@@ -256,8 +278,14 @@ async fn proxy_to_openai(client: &Client, req: &ProxyRequest) -> Result<ProxyRes
         .map_err(|e| AppError::Internal(format!("OpenAI API error: {}", e)))?;
 
     if !response.status().is_success() {
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        return Err(AppError::Internal(format!("OpenAI API error: {}", error_text)));
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(AppError::Internal(format!(
+            "OpenAI API error: {}",
+            error_text
+        )));
     }
 
     let openai_response: OpenAIResponse = response
@@ -269,10 +297,14 @@ async fn proxy_to_openai(client: &Client, req: &ProxyRequest) -> Result<ProxyRes
         id: openai_response.id,
         provider: "openai".to_string(),
         model: req.model.clone(),
-        choices: openai_response.choices.into_iter().map(|c| Choice {
-            message: c.message,
-            finish_reason: c.finish_reason,
-        }).collect(),
+        choices: openai_response
+            .choices
+            .into_iter()
+            .map(|c| Choice {
+                message: c.message,
+                finish_reason: c.finish_reason,
+            })
+            .collect(),
         usage: Usage {
             prompt_tokens: openai_response.usage.prompt_tokens,
             completion_tokens: openai_response.usage.completion_tokens,
@@ -331,8 +363,14 @@ async fn proxy_to_anthropic(client: &Client, req: &ProxyRequest) -> Result<Proxy
         .map_err(|e| AppError::Internal(format!("Anthropic API error: {}", e)))?;
 
     if !response.status().is_success() {
-        let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        return Err(AppError::Internal(format!("Anthropic API error: {}", error_text)));
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(AppError::Internal(format!(
+            "Anthropic API error: {}",
+            error_text
+        )));
     }
 
     let anthropic_response: AnthropicResponse = response
@@ -347,7 +385,9 @@ async fn proxy_to_anthropic(client: &Client, req: &ProxyRequest) -> Result<Proxy
         choices: vec![Choice {
             message: Message {
                 role: "assistant".to_string(),
-                content: anthropic_response.content.first()
+                content: anthropic_response
+                    .content
+                    .first()
                     .map(|c| c.text.clone())
                     .unwrap_or_default(),
             },
@@ -356,7 +396,8 @@ async fn proxy_to_anthropic(client: &Client, req: &ProxyRequest) -> Result<Proxy
         usage: Usage {
             prompt_tokens: anthropic_response.usage.input_tokens,
             completion_tokens: anthropic_response.usage.output_tokens,
-            total_tokens: anthropic_response.usage.input_tokens + anthropic_response.usage.output_tokens,
+            total_tokens: anthropic_response.usage.input_tokens
+                + anthropic_response.usage.output_tokens,
         },
         cost: 0.0,
     })
@@ -364,25 +405,31 @@ async fn proxy_to_anthropic(client: &Client, req: &ProxyRequest) -> Result<Proxy
 
 async fn proxy_to_google(_client: &Client, _req: &ProxyRequest) -> Result<ProxyResponse> {
     // Simplified - would implement actual Google Gemini API integration
-    Err(AppError::Internal("Google provider not yet implemented".to_string()))
+    Err(AppError::Internal(
+        "Google provider not yet implemented".to_string(),
+    ))
 }
 
 async fn proxy_to_azure(_client: &Client, _req: &ProxyRequest) -> Result<ProxyResponse> {
     // Simplified - would implement actual Azure OpenAI API integration
-    Err(AppError::Internal("Azure provider not yet implemented".to_string()))
+    Err(AppError::Internal(
+        "Azure provider not yet implemented".to_string(),
+    ))
 }
 
 async fn proxy_to_bedrock(_client: &Client, _req: &ProxyRequest) -> Result<ProxyResponse> {
     // Simplified - would implement actual AWS Bedrock API integration
-    Err(AppError::Internal("Bedrock provider not yet implemented".to_string()))
+    Err(AppError::Internal(
+        "Bedrock provider not yet implemented".to_string(),
+    ))
 }
 
 // Helper functions
 
 async fn check_policies(
-    pool: &PgPool,
-    user_id: Option<Uuid>,
-    team_id: Option<Uuid>,
+    _pool: &PgPool,
+    _user_id: Option<Uuid>,
+    _team_id: Option<Uuid>,
     req: &ProxyRequest,
 ) -> Result<()> {
     // Get active policies for user/team
@@ -398,7 +445,8 @@ async fn check_policies(
 
 async fn check_circuit_breaker(breakers: &CircuitBreakers, provider_key: &str) -> bool {
     let mut breakers_map = breakers.write().await;
-    let state = breakers_map.entry(provider_key.to_string())
+    let state = breakers_map
+        .entry(provider_key.to_string())
         .or_insert(CircuitBreakerState {
             failures: 0,
             last_failure_time: None,
@@ -432,7 +480,8 @@ async fn record_success(breakers: &CircuitBreakers, provider_key: &str) {
 
 async fn record_failure(breakers: &CircuitBreakers, provider_key: &str) {
     let mut breakers_map = breakers.write().await;
-    let state = breakers_map.entry(provider_key.to_string())
+    let state = breakers_map
+        .entry(provider_key.to_string())
         .or_insert(CircuitBreakerState {
             failures: 0,
             last_failure_time: None,
@@ -465,6 +514,10 @@ fn calculate_cost(provider: &str, model: &str, prompt_tokens: i32, completion_to
     input_cost + output_cost
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the persistence helper mirrors the immutable metrics row schema"
+)]
 async fn record_metrics(
     pool: &PgPool,
     user_id: Option<Uuid>,

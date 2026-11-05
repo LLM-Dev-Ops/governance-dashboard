@@ -42,7 +42,11 @@ mod tests {
         let ids: Vec<String> = results.iter().map(|r| r.target_id.clone()).collect();
         let unique_ids: std::collections::HashSet<_> = ids.iter().collect();
 
-        assert_eq!(ids.len(), unique_ids.len(), "All benchmark results should have unique IDs");
+        assert_eq!(
+            ids.len(),
+            unique_ids.len(),
+            "All benchmark results should have unique IDs"
+        );
     }
 
     #[test]
@@ -50,8 +54,16 @@ mod tests {
         let results = run_all_benchmarks();
 
         for result in results {
-            assert!(!result.metrics.is_null(), "Benchmark {} should have metrics", result.target_id);
-            assert!(result.metrics.is_object(), "Metrics for {} should be a JSON object", result.target_id);
+            assert!(
+                !result.metrics.is_null(),
+                "Benchmark {} should have metrics",
+                result.target_id
+            );
+            assert!(
+                result.metrics.is_object(),
+                "Metrics for {} should be a JSON object",
+                result.target_id
+            );
         }
     }
 }

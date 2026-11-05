@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 pub struct MfaService;
 
 impl MfaService {
@@ -12,13 +10,19 @@ impl MfaService {
         todo!("Implement MFA secret generation")
     }
 
-    pub fn generate_qr_code(&self, secret: &str, email: &str) -> Result<String, anyhow::Error> {
+    pub fn generate_qr_code(&self, _secret: &str, _email: &str) -> Result<String, anyhow::Error> {
         // TODO(#4): Implement QR code generation
         todo!("Implement QR code generation")
     }
 
-    pub fn verify_token(&self, secret: &str, token: &str) -> Result<bool, anyhow::Error> {
+    pub fn verify_token(&self, _secret: &str, _token: &str) -> Result<bool, anyhow::Error> {
         // TODO(#4): Implement TOTP token verification
         todo!("Implement TOTP token verification")
+    }
+}
+
+impl Default for MfaService {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -12,28 +12,28 @@
 //! - Observatory: Telemetry events, trace spans, health indicators
 //! - Analytics Hub: Aggregated analytics, baselines, forecasts
 //!
-//! ## Infra Integration
+//! ## Infra-compatible configuration
 //!
-//! This module integrates with `llm-infra-core` for:
-//! - Configuration loading via infra config module
-//! - Retry logic via infra retry module
-//! - Caching via infra cache module
-//! - Rate limiting via infra rate-limit module
-//! - Error handling via infra errors module
+//! The adapter configuration remains local and dependency-free while matching the
+//! retry, cache, and rate-limit concepts exposed by the current `infra` crates.
 
-pub mod policy_engine;
-pub mod registry;
+pub mod analytics_hub;
+pub mod change_impact;
 pub mod cost_ops;
 pub mod observatory;
-pub mod analytics_hub;
+pub mod policy_engine;
+pub mod registry;
 pub mod ruvector;
-pub mod change_impact;
 
 use crate::error::Result;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 /// Common trait for all ecosystem consumer adapters
+#[allow(
+    clippy::double_must_use,
+    reason = "async_trait adds must_use to a Future whose Result is already must_use"
+)]
 #[async_trait]
 pub trait EcosystemConsumer: Send + Sync {
     /// Returns the name of the upstream service
@@ -45,11 +45,8 @@ pub trait EcosystemConsumer: Send + Sync {
 
 /// Configuration for connecting to upstream services
 ///
-/// This configuration structure aligns with the LLM-Dev-Ops Infra patterns.
-/// When the `llm-infra-core` crate is available, consider using:
-/// ```ignore
-/// use llm_infra_core::config::UpstreamConfig;
-/// ```
+/// This local configuration structure aligns with LLM-Dev-Ops Infra patterns
+/// without depending on the retired `llm-infra-core` umbrella crate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpstreamConfig {
     /// Base URL of the upstream service

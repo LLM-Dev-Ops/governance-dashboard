@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -19,7 +19,7 @@ pub struct VerifyMfaRequest {
 }
 
 #[post("/mfa/enable")]
-async fn enable_mfa(req: web::Json<EnableMfaRequest>) -> impl Responder {
+async fn enable_mfa(_req: web::Json<EnableMfaRequest>) -> impl Responder {
     // TODO(#4): Implement MFA enablement
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "MFA enable endpoint not yet implemented"
@@ -27,7 +27,7 @@ async fn enable_mfa(req: web::Json<EnableMfaRequest>) -> impl Responder {
 }
 
 #[post("/mfa/verify")]
-async fn verify_mfa(req: web::Json<VerifyMfaRequest>) -> impl Responder {
+async fn verify_mfa(_req: web::Json<VerifyMfaRequest>) -> impl Responder {
     // TODO(#4): Implement MFA verification
     HttpResponse::NotImplemented().json(serde_json::json!({
         "message": "MFA verify endpoint not yet implemented"

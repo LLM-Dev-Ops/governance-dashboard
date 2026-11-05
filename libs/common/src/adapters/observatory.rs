@@ -163,7 +163,10 @@ impl ObservatoryConsumer {
         );
 
         if let Some(et) = event_type {
-            let type_str = serde_json::to_string(&et).unwrap().trim_matches('"').to_string();
+            let type_str = serde_json::to_string(&et)
+                .unwrap()
+                .trim_matches('"')
+                .to_string();
             url.push_str(&format!("&type={}", type_str));
         }
 
@@ -172,10 +175,7 @@ impl ObservatoryConsumer {
 
     /// Consume trace spans for a specific trace
     pub async fn get_trace_spans(&self, trace_id: &str) -> Result<Vec<TraceSpan>> {
-        let url = format!(
-            "{}/api/v1/traces/{}/spans",
-            self.config.base_url, trace_id
-        );
+        let url = format!("{}/api/v1/traces/{}/spans", self.config.base_url, trace_id);
         self.fetch_json(&url).await
     }
 
@@ -313,7 +313,10 @@ impl ObservatoryConsumer {
     // ... existing methods ...
 
     /// Emit a telemetry event to Observatory
-    pub async fn emit_telemetry(&self, request: EmitTelemetryRequest) -> Result<EmitTelemetryResponse> {
+    pub async fn emit_telemetry(
+        &self,
+        request: EmitTelemetryRequest,
+    ) -> Result<EmitTelemetryResponse> {
         let url = format!("{}/api/v1/telemetry/events", self.config.base_url);
         self.post_json(&url, &request).await
     }
@@ -325,17 +328,35 @@ impl ObservatoryConsumer {
     }
 
     /// Emit agent-specific telemetry for governance agents
-    pub async fn emit_agent_telemetry(&self, event: AgentTelemetryEvent) -> Result<EmitTelemetryResponse> {
+    pub async fn emit_agent_telemetry(
+        &self,
+        event: AgentTelemetryEvent,
+    ) -> Result<EmitTelemetryResponse> {
         let mut attributes = event.attributes.clone();
         attributes.insert("agent_id".to_string(), serde_json::json!(event.agent_id));
-        attributes.insert("agent_version".to_string(), serde_json::json!(event.agent_version));
-        attributes.insert("decision_type".to_string(), serde_json::json!(event.decision_type));
-        attributes.insert("decision_event_id".to_string(), serde_json::json!(event.decision_event_id));
-        attributes.insert("confidence_score".to_string(), serde_json::json!(event.confidence_score));
+        attributes.insert(
+            "agent_version".to_string(),
+            serde_json::json!(event.agent_version),
+        );
+        attributes.insert(
+            "decision_type".to_string(),
+            serde_json::json!(event.decision_type),
+        );
+        attributes.insert(
+            "decision_event_id".to_string(),
+            serde_json::json!(event.decision_event_id),
+        );
+        attributes.insert(
+            "confidence_score".to_string(),
+            serde_json::json!(event.confidence_score),
+        );
         if let Some(risk) = event.risk_score {
             attributes.insert("risk_score".to_string(), serde_json::json!(risk));
         }
-        attributes.insert("findings_count".to_string(), serde_json::json!(event.findings_count));
+        attributes.insert(
+            "findings_count".to_string(),
+            serde_json::json!(event.findings_count),
+        );
 
         let request = EmitTelemetryRequest {
             event_type: TelemetryEventType::Custom,

@@ -1,46 +1,39 @@
-#[cfg(test)]
-mod mfa_service_tests {
-    use super::*;
+use actix_web::{http::StatusCode, test, App};
+use auth_service::handlers::mfa;
 
-    #[test]
-    fn test_totp_secret_generation() {
-        // Test TOTP secret generation
-        // TODO(#6): Implement TOTP secret generation test
-        assert!(true); // Placeholder
-    }
+#[actix_rt::test]
+async fn mfa_endpoints_report_unimplemented_instead_of_succeeding() {
+    let app = test::init_service(App::new().configure(mfa::configure)).await;
 
-    #[test]
-    fn test_totp_code_validation() {
-        // Test TOTP code validation
-        // TODO(#6): Implement TOTP validation test
-        assert!(true); // Placeholder
-    }
+    let enable = test::TestRequest::post()
+        .uri("/mfa/enable")
+        .set_json(serde_json::json!({"user_id": "user-1"}))
+        .to_request();
+    assert_eq!(
+        test::call_service(&app, enable).await.status(),
+        StatusCode::NOT_IMPLEMENTED
+    );
 
-    #[test]
-    fn test_qr_code_generation() {
-        // Test QR code generation for TOTP setup
-        // TODO(#6): Implement QR code generation test
-        assert!(true); // Placeholder
-    }
+    let verify = test::TestRequest::post()
+        .uri("/mfa/verify")
+        .set_json(serde_json::json!({"user_id": "user-1", "token": "123456"}))
+        .to_request();
+    assert_eq!(
+        test::call_service(&app, verify).await.status(),
+        StatusCode::NOT_IMPLEMENTED
+    );
+}
 
-    #[test]
-    fn test_backup_codes_generation() {
-        // Test backup codes generation
-        // TODO(#6): Implement backup codes test
-        assert!(true); // Placeholder
-    }
+#[actix_rt::test]
+async fn mfa_verify_rejects_an_incomplete_request() {
+    let app = test::init_service(App::new().configure(mfa::configure)).await;
+    let request = test::TestRequest::post()
+        .uri("/mfa/verify")
+        .set_json(serde_json::json!({"user_id": "user-1"}))
+        .to_request();
 
-    #[test]
-    fn test_backup_code_validation() {
-        // Test backup code validation and consumption
-        // TODO(#6): Implement backup code validation test
-        assert!(true); // Placeholder
-    }
-
-    #[test]
-    fn test_mfa_disable() {
-        // Test MFA disabling
-        // TODO(#6): Implement MFA disable test
-        assert!(true); // Placeholder
-    }
+    assert_eq!(
+        test::call_service(&app, request).await.status(),
+        StatusCode::BAD_REQUEST
+    );
 }

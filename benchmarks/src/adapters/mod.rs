@@ -1,10 +1,10 @@
 use crate::result::BenchmarkResult;
 
 // Re-export adapters
-pub mod policy_evaluation;
 pub mod audit_logging;
 pub mod cost_calculation;
 pub mod metrics_collection;
+pub mod policy_evaluation;
 
 /// Trait representing a benchmarkable target
 pub trait BenchTarget {
@@ -40,6 +40,10 @@ mod tests {
         let targets = all_targets();
         let ids: Vec<String> = targets.iter().map(|t| t.id()).collect();
         let unique_ids: std::collections::HashSet<_> = ids.iter().collect();
-        assert_eq!(ids.len(), unique_ids.len(), "All target IDs should be unique");
+        assert_eq!(
+            ids.len(),
+            unique_ids.len(),
+            "All target IDs should be unique"
+        );
     }
 }

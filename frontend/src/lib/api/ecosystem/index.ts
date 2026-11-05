@@ -13,5 +13,22 @@ export * from './registry';
 export * from './cost-ops';
 export * from './observatory';
 export * from './analytics-hub';
-export * from './governance-audit';
+export { createGovernanceAuditConsumer } from './governance-audit';
+export type {
+	GovernanceDecisionType,
+	GovernanceSeverity,
+	FindingCategory,
+	TrendDirection as GovernanceTrendDirection,
+	DateRange as GovernanceDateRange,
+	GovernanceFinding,
+	GovernanceMetrics,
+	DecisionConfidence,
+	AuditArtifact,
+	GovernanceAuditResult,
+	GovernanceSummary,
+	AgentRegistrationInfo,
+	GovernanceAuditRequest,
+	StoredAudit,
+	GovernanceAuditConsumer
+} from './governance-audit';
 export * from './types';

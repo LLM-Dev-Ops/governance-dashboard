@@ -3,11 +3,11 @@ use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage, HttpResponse,
 };
+use base64::{engine::general_purpose, Engine as _};
 use futures::future::LocalBoxFuture;
+use sha2::{Digest, Sha256};
 use std::future::{ready, Ready};
 use std::rc::Rc;
-use sha2::{Sha256, Digest};
-use base64::{Engine as _, engine::general_purpose};
 use uuid::Uuid;
 
 /// CSRF Protection Middleware
@@ -20,20 +20,18 @@ impl CsrfProtection {
         Self { secret }
     }
 
-    /// Generate a CSRF token for a session
+    /// Validate a CSRF token
+    #[cfg(test)]
+    /// Generate a CSRF token bound to a session.
     pub fn generate_token(&self, session_id: &str) -> String {
         let timestamp = chrono::Utc::now().timestamp();
         let data = format!("{}:{}:{}", session_id, timestamp, self.secret);
-
         let mut hasher = Sha256::new();
         hasher.update(data.as_bytes());
         let hash = hasher.finalize();
-
-        let token = format!("{}:{}", timestamp, general_purpose::STANDARD.encode(hash));
-        token
+        format!("{}:{}", timestamp, general_purpose::STANDARD.encode(hash))
     }
 
-    /// Validate a CSRF token
     pub fn validate_token(&self, token: &str, session_id: &str) -> bool {
         let parts: Vec<&str> = token.split(':').collect();
         if parts.len() != 2 {
@@ -47,7 +45,7 @@ impl CsrfProtection {
 
         // Token expires after 24 hours
         let now = chrono::Utc::now().timestamp();
-        if now - timestamp > 86400 {
+        if timestamp > now || now - timestamp > 86400 {
             return false;
         }
 
@@ -56,7 +54,11 @@ impl CsrfProtection {
         let mut hasher = Sha256::new();
         hasher.update(data.as_bytes());
         let expected_hash = hasher.finalize();
-        let expected_token = format!("{}:{}", timestamp, general_purpose::STANDARD.encode(expected_hash));
+        let expected_token = format!(
+            "{}:{}",
+            timestamp,
+            general_purpose::STANDARD.encode(expected_hash)
+        );
 
         token == expected_token
     }
@@ -66,9 +68,9 @@ impl<S, B> Transform<S, ServiceRequest> for CsrfProtection
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = CsrfMiddleware<S>;
@@ -113,17 +115,20 @@ where
                 if path.starts_with("/auth/login")
                     || path.starts_with("/auth/register")
                     || path.starts_with("/auth/password-reset")
-                    || path.starts_with("/health") {
+                    || path.starts_with("/health")
+                {
                     return service.call(req).await.map(|res| res.map_into_boxed_body());
                 }
 
                 // Get CSRF token from header
-                let csrf_token = req.headers()
+                let csrf_token = req
+                    .headers()
                     .get("X-CSRF-Token")
                     .and_then(|h| h.to_str().ok());
 
                 // Get session ID from user_id in extensions (set by auth middleware)
-                let session_id = req.extensions()
+                let session_id = req
+                    .extensions()
                     .get::<Uuid>()
                     .map(|id| id.to_string())
                     .unwrap_or_else(|| "anonymous".to_string());
@@ -136,11 +141,10 @@ where
                 }
 
                 // CSRF validation failed
-                let response = HttpResponse::Forbidden()
-                    .json(serde_json::json!({
-                        "success": false,
-                        "error": "CSRF token validation failed"
-                    }));
+                let response = HttpResponse::Forbidden().json(serde_json::json!({
+                    "success": false,
+                    "error": "CSRF token validation failed"
+                }));
 
                 return Ok(req.into_response(response));
             }
@@ -168,6 +172,23 @@ mod tests {
     fn test_invalid_token() {
         let csrf = CsrfProtection::new("test_secret".to_string());
         assert!(!csrf.validate_token("invalid_token", "session"));
+    }
+
+    #[test]
+    fn test_future_token_is_rejected() {
+        let csrf = CsrfProtection::new("test_secret".to_string());
+        let session_id = "test_session";
+        let timestamp = chrono::Utc::now().timestamp() + 3600;
+        let data = format!("{}:{}:{}", session_id, timestamp, csrf.secret);
+        let mut hasher = Sha256::new();
+        hasher.update(data.as_bytes());
+        let token = format!(
+            "{}:{}",
+            timestamp,
+            general_purpose::STANDARD.encode(hasher.finalize())
+        );
+
+        assert!(!csrf.validate_token(&token, session_id));
     }
 
     #[test]

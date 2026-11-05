@@ -1,7 +1,12 @@
 use actix_web::web;
 
+pub mod costs;
 pub mod health;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/api/v1").configure(health::configure));
+    cfg.service(
+        web::scope("/api/v1")
+            .configure(health::configure)
+            .configure(costs::configure),
+    );
 }

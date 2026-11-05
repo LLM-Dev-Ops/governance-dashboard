@@ -1,9 +1,9 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder, HttpRequest};
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use llm_governance_common::{ApiResponse, AppError, Result};
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use sqlx::PgPool;
 use uuid::Uuid;
-use llm_governance_common::{AppError, Result, ApiResponse};
+use validator::Validate;
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateUserRequest {
@@ -16,6 +16,7 @@ pub struct CreateUserRequest {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct UpdateUserRequest {
+    #[validate(length(min = 2, max = 100))]
     pub name: Option<String>,
     pub status: Option<String>,
     pub role_ids: Option<Vec<Uuid>>,
@@ -52,8 +53,7 @@ pub async fn list_users(
     pool: web::Data<PgPool>,
     query: web::Query<PaginationQuery>,
 ) -> Result<impl Responder> {
-    let limit = query.limit.unwrap_or(20).min(100);
-    let offset = query.offset.unwrap_or(0);
+    let (limit, offset) = normalize_pagination(&query);
 
     let users = sqlx::query_as::<_, UserResponse>(
         r#"
@@ -72,19 +72,18 @@ pub async fn list_users(
         .fetch_one(pool.get_ref())
         .await?;
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
-        "users": users,
-        "total": total.0,
-        "limit": limit,
-        "offset": offset
-    }))))
+    Ok(
+        HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+            "users": users,
+            "total": total.0,
+            "limit": limit,
+            "offset": offset
+        }))),
+    )
 }
 
 #[get("/users/{id}")]
-pub async fn get_user(
-    pool: web::Data<PgPool>,
-    user_id: web::Path<Uuid>,
-) -> Result<impl Responder> {
+pub async fn get_user(pool: web::Data<PgPool>, user_id: web::Path<Uuid>) -> Result<impl Responder> {
     let user = sqlx::query_as::<_, UserResponse>(
         r#"
         SELECT id, email, name, status, mfa_enabled, created_at, updated_at
@@ -264,7 +263,7 @@ pub async fn delete_user(
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "User deleted successfully"})
+        serde_json::json!({"message": "User deleted successfully"}),
     )))
 }
 
@@ -303,7 +302,7 @@ pub async fn assign_role(
     .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Role assigned successfully"})
+        serde_json::json!({"message": "Role assigned successfully"}),
     )))
 }
 
@@ -325,7 +324,7 @@ pub async fn revoke_role(
         .await?;
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(
-        serde_json::json!({"message": "Role revoked successfully"})
+        serde_json::json!({"message": "Role revoked successfully"}),
     )))
 }
 
@@ -335,6 +334,13 @@ pub async fn revoke_role(
 pub struct PaginationQuery {
     pub limit: Option<u32>,
     pub offset: Option<u32>,
+}
+
+pub fn normalize_pagination(query: &PaginationQuery) -> (u32, u32) {
+    (
+        query.limit.unwrap_or(20).min(100),
+        query.offset.unwrap_or(0),
+    )
 }
 
 async fn aggregate_permissions(pool: &PgPool, user_id: &Uuid) -> Result<serde_json::Value> {
@@ -387,7 +393,10 @@ async fn check_permission(pool: &PgPool, user_id: Uuid, permission: &str) -> Res
 
     if let Some(resource_perms) = permissions.get(resource) {
         if let Some(actions) = resource_perms.as_array() {
-            if actions.iter().any(|a| a.as_str() == Some(action) || a.as_str() == Some("*")) {
+            if actions
+                .iter()
+                .any(|a| a.as_str() == Some(action) || a.as_str() == Some("*"))
+            {
                 return Ok(());
             }
         }

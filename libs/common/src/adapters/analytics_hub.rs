@@ -328,10 +328,9 @@ impl AnalyticsHubConsumer {
             )));
         }
 
-        response
-            .json()
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to parse Analytics Hub response: {}", e)))
+        response.json().await.map_err(|e| {
+            AppError::Internal(format!("Failed to parse Analytics Hub response: {}", e))
+        })
     }
 }
 
