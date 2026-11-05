@@ -50,13 +50,22 @@ export class ApiClient {
         headers,
       });
 
-      const data = await response.json();
+      // Empty successes are not network failures. Error gateways may return
+      // HTML or no body; preserve status without exposing arbitrary text.
+      const text = await response.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : undefined;
+      } catch (error) {
+        if (response.ok) throw error;
+      }
 
       if (!response.ok) {
+        const body = data !== null && typeof data === 'object' ? data : {};
         const error: ApiError = {
-          detail: data.detail || 'An error occurred',
+          detail: typeof body.detail === 'string' && body.detail ? body.detail : 'An error occurred',
           status_code: response.status,
-          error_code: data.error_code,
+          error_code: typeof body.error_code === 'string' ? body.error_code : undefined,
         };
         throw error;
       }
@@ -66,7 +75,7 @@ export class ApiClient {
         success: true,
       };
     } catch (error) {
-      if ((error as ApiError).status_code) {
+      if (error !== null && typeof error === 'object' && (error as ApiError).status_code) {
         throw error;
       }
 
