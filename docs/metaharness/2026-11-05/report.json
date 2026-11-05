@@ -3394,10 +3394,13 @@
     "frontendTests": {
       "baseline": 57,
       "candidate": 64,
-      "otherRealAssertionsRetained": 49,
-      "realAssertionsLost": 0,
       "placeholderClientAssertionsReplaced": 8,
-      "newNativeChecks": 15
+      "newNativeChecks": 15,
+      "otherAssertionsRetained": 49,
+      "otherAssertionNamesLost": 0,
+      "remainingNoOpPlaceholders": 49,
+      "actualNativeChecks": 15,
+      "correction": "Final source inspection found all49other assertions still use expect(true).toBe(true);64passing tests is NOT64meaningful tests. Baseline57were placeholders;8client placeholders replaced with15nativechecks. No UI/auth-store behavior validation claimed from49unchanged placeholders."
     },
     "frontendCheck": {
       "baseline": 0,
@@ -4905,6 +4908,7 @@
     "allPaths": "Revert source commit via new commit to parent477bc17; authoritative parentGit tree08ace25d67c40d1c88f38f4c3472799cbc6ae69a restores all6paths. No deployment or live rollback occurred."
   },
   "remaining": [
+    "Replace49remaining no-op frontend placeholder tests with real source/component validation; do not treat64passing as64meaningful tests",
     "Fix full30npm/31Rust audit findings without suppression",
     "Meet unchanged80%coverage thresholds with real instrumentation and tests",
     "Complete locked Rust tests/build/Clippy plus integration/E2E/requiredCI approvals",
@@ -5411,5 +5415,10 @@
     "scripts/probe-api.mjs",
     ".github/workflows/api-response-contract.yml"
   ],
-  "logs": "Selected command log tails,not full logs,in native-log-tails.json; full hostedlogs accessible through linked jobs"
+  "logs": "Selected command log tails,not full logs,in native-log-tails.json; full hostedlogs accessible through linked jobs",
+  "correction": {
+    "date": "2026-11-05",
+    "supersedesEvidenceCommit": "078f73e2a55ea0297b801e9ee990bc5da682bcaa",
+    "reason": "Correct overstatement calling49retained placeholder assertions real. Implementation/candidate/measurements unchanged; only15newnativechecks provide actual test validation."
+  }
 }
